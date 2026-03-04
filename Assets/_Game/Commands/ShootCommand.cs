@@ -1,5 +1,6 @@
 using FrontLine.Models;
 using FrontLine.Controllers;
+using FrontLine.Services;
 
 namespace FrontLine.Commands
 {
@@ -53,7 +54,7 @@ namespace FrontLine.Commands
                 return CommandResult.Fail($"Target out of attack range. Distance:{distance} Range:{attacker.AttackRange}");
 
             // Execute — apply damage
-            var resolver = new Services.CombatResolver();
+            var resolver = ServiceLocator.Instance.Get<CombatResolver>();
             var combatResult = resolver.Resolve(attacker, target);
 
             turnController.ConsumeActionPoint(UnitId);
