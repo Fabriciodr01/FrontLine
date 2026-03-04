@@ -10,15 +10,17 @@ namespace FrontLine.Models
     {
         public int X { get; private set; }
         public int Y { get; private set; }
+        public int Elevation { get; set; } // 0 = ground, 1 = raised, 2 = rooftop etc.
         public TileType Type { get; set; }
         public bool IsOccupied { get; set; }
         public string OccupyingUnitId { get; set; }
 
-        public TileData(int x, int y, TileType type = TileType.Normal)
+        public TileData(int x, int y, TileType type = TileType.Normal, int elevation = 0)
         {
             X = x;
             Y = y;
             Type = type;
+            Elevation = elevation;
             IsOccupied = false;
             OccupyingUnitId = null;
         }

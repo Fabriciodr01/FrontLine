@@ -27,6 +27,8 @@ namespace FrontLine.Services
     {
         private readonly Random _random;
 
+        private readonly GameState _gameState;
+
         // Base hit chance percentage (0-100)
         private const int BaseHitChance = 75;
 
@@ -36,8 +38,9 @@ namespace FrontLine.Services
         // Minimum hit chance floor — never impossible to hit
         private const int MinHitChance = 15;
 
-        public CombatResolver(Random random = null)
+        public CombatResolver(GameState gameState, Random random = null)
         {
+            _gameState = gameState;
             _random = random ?? new Random();
         }
 
@@ -65,8 +68,15 @@ namespace FrontLine.Services
                 Math.Abs(target.TileY - attacker.TileY));
 
             int penalty = Math.Max(0, distance - 1) * DistancePenaltyPerTile;
-            int chance = Math.Max(MinHitChance, BaseHitChance - penalty);
 
+            // Elevation advantage — higher ground hits easier
+            var attackerTile = _gameState?.GetTile(attacker.TileX, attacker.TileY);
+            var targetTile = _gameState?.GetTile(target.TileX, target.TileY);
+            int elevationBonus = 0;
+            if (attackerTile != null && targetTile != null)
+                elevationBonus = (attackerTile.Elevation - targetTile.Elevation) * 5;
+
+            int chance = Math.Max(MinHitChance, BaseHitChance - penalty + elevationBonus);
             return chance;
         }
     }
