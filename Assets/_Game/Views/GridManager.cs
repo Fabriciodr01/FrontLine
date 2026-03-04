@@ -15,9 +15,14 @@ namespace FrontLine.Views
         private GameState _gameState;
         private GameObject[,] _tileObjects;
 
-        private void Start()
+        public void Initialize()
         {
             _gameState = ServiceLocator.Instance.Get<GameState>();
+            SpawnGrid();
+        }
+
+        private void Start()
+        {
             SpawnGrid();
         }
 

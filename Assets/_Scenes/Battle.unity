@@ -524,8 +524,56 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FrontLine.Views.GridManager
   _tilePrefab: {fileID: 5085850560299859989, guid: 883ea512edb2dc84e9291d9b944cafbd, type: 3}
+  _tileHeight: 0.1
   _tileSize: 1
   _tileSpacing: 0.05
+--- !u!1 &1911939425
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1911939427}
+  - component: {fileID: 1911939426}
+  m_Layer: 0
+  m_Name: UnitSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1911939426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911939425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aed5625ff3ec4924aa9b67d0fbbc73b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FrontLine.Views.UnitSpawner
+  _unitPrefab: {fileID: 3015765295127903994, guid: a4cb2b05ef2d0ff42aa1b00c3f78c05d, type: 3}
+  _player1Color: {r: 0, g: 0, b: 1, a: 1}
+  _player2Color: {r: 1, g: 0, b: 0, a: 1}
+--- !u!4 &1911939427
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911939425}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: -0, z: 1.05}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -535,3 +583,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 585491145}
   - {fileID: 1479025761}
+  - {fileID: 1911939427}

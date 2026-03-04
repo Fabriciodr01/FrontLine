@@ -13,25 +13,24 @@ namespace FrontLine.Services
 
         [Header("Scene References")]
         [SerializeField] private GridManager _gridManager;
+        [SerializeField] private UnitSpawner _unitSpawner;
 
         private void Awake()
         {
             InitializeServices();
+            InitializeScene();
         }
 
         private void InitializeServices()
         {
-            // Clear any stale services from previous sessions
             ServiceLocator.Instance.Clear();
 
-            // Build core systems in dependency order
             var gameState = new GameState(_gridWidth, _gridHeight);
             var stateMachine = new GameStateMachine();
             var turnController = new TurnController(gameState, stateMachine);
             var combatResolver = new CombatResolver(gameState);
             var cmdProcessor = new CommandProcessor(gameState, turnController);
 
-            // Register everything
             ServiceLocator.Instance.Register(gameState);
             ServiceLocator.Instance.Register(stateMachine);
             ServiceLocator.Instance.Register(turnController);
@@ -39,7 +38,15 @@ namespace FrontLine.Services
             ServiceLocator.Instance.Register(cmdProcessor);
             ServiceLocator.Instance.Register(_gridManager);
 
-            Debug.Log("[GameBootstrapper] All services initialized.");
+            Debug.Log("[GameBootstrapper] Services registered.");
+        }
+
+        private void InitializeScene()
+        {
+            _gridManager.Initialize();
+            _unitSpawner.Initialize();
+
+            Debug.Log("[GameBootstrapper] Scene initialized.");
         }
     }
 }
