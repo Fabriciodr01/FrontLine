@@ -67,5 +67,15 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "FrontLine.slnx"
+    "dotnet.defaultSolution": "FrontLine.slnx",
+
+    //Unity Editor
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "editor.inlayHints.enabled": "on"
 }
