@@ -8,6 +8,7 @@ namespace FrontLine.Views
     {
         [Header("Tile Settings")]
         [SerializeField] private GameObject _tilePrefab;
+        [SerializeField] private float _tileHeight = 0.1f;
         [SerializeField] private float _tileSize = 1f;
         [SerializeField] private float _tileSpacing = 0.05f;
 
@@ -41,8 +42,9 @@ namespace FrontLine.Views
             Vector3 worldPos = new Vector3(x * step, 0f, y * step);
 
             var tileObj = Instantiate(_tilePrefab, worldPos, Quaternion.identity, transform);
+
             tileObj.name = $"Tile_{x}_{y}";
-            tileObj.transform.localScale = Vector3.one * _tileSize;
+            tileObj.transform.localScale = new Vector3(_tileSize, _tileHeight, _tileSize);
 
             _tileObjects[x, y] = tileObj;
         }
