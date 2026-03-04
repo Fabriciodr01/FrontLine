@@ -53,17 +53,23 @@ namespace FrontLine.Commands
                 return CommandResult.Fail($"Target out of attack range. Distance:{distance} Range:{attacker.AttackRange}");
 
             // Execute — apply damage
-            target.TakeDamage(attacker.Damage);
+            var resolver = new Services.CombatResolver();
+            var combatResult = resolver.Resolve(attacker, target);
+
             turnController.ConsumeActionPoint(UnitId);
 
-            // Remove unit from game if dead
-            if (!target.IsAlive)
+            if (!combatResult.Hit)
+                return CommandResult.Ok($"MISS. {combatResult}");
+
+            target.TakeDamage(combatResult.DamageDealt);
+
+            if (combatResult.Killed)
             {
                 gameState.RemoveUnit(TargetUnitId);
-                return CommandResult.Ok($"Unit {UnitId} killed {TargetUnitId}.");
+                return CommandResult.Ok($"KILL. {combatResult}");
             }
 
-            return CommandResult.Ok($"Unit {UnitId} dealt {attacker.Damage} damage to {TargetUnitId}. HP remaining: {target.Health}");
+            return CommandResult.Ok($"HIT. {combatResult}");
         }
     }
 }
