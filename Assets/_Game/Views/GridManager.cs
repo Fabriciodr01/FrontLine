@@ -12,17 +12,13 @@ namespace FrontLine.Views
         [SerializeField] private float _tileSize = 1f;
         [SerializeField] private float _tileSpacing = 0.05f;
 
+        public float TileStep => _tileSize + _tileSpacing;
         private GameState _gameState;
         private GameObject[,] _tileObjects;
 
         public void Initialize()
         {
             _gameState = ServiceLocator.Instance.Get<GameState>();
-            SpawnGrid();
-        }
-
-        private void Start()
-        {
             SpawnGrid();
         }
 

@@ -84,5 +84,10 @@ namespace FrontLine.Views
             yield return new WaitForSeconds(0.2f);
             _renderer.material.color = _ownerColor;
         }
+
+        public void SetExhausted(bool exhausted)
+        {
+            _renderer.material.color = exhausted ? Color.grey : _ownerColor;
+        }
     }
 }

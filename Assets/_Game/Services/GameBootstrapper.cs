@@ -1,6 +1,7 @@
 using UnityEngine;
 using FrontLine.Models;
 using FrontLine.Controllers;
+using FrontLine.Input;
 using FrontLine.Views;
 
 namespace FrontLine.Services
@@ -14,6 +15,9 @@ namespace FrontLine.Services
         [Header("Scene References")]
         [SerializeField] private GridManager _gridManager;
         [SerializeField] private UnitSpawner _unitSpawner;
+        [SerializeField] private InputManager _inputManager;
+        [SerializeField] private SelectionManager _selectionManager;
+        [SerializeField] private CameraController _cameraController;
 
         private void Awake()
         {
@@ -44,6 +48,9 @@ namespace FrontLine.Services
         private void InitializeScene()
         {
             _gridManager.Initialize();
+            _inputManager.Initialize();
+            _selectionManager.Initialize(_inputManager);
+            _cameraController.Initialize(_inputManager);
             _unitSpawner.Initialize();
 
             Debug.Log("[GameBootstrapper] Scene initialized.");

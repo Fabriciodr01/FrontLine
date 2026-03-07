@@ -3,6 +3,7 @@ using UnityEngine;
 using FrontLine.Models;
 using FrontLine.Services;
 using FrontLine.Controllers;
+using FrontLine.Commands;
 
 namespace FrontLine.Views
 {
@@ -21,9 +22,23 @@ namespace FrontLine.Views
         {
             _gameState = ServiceLocator.Instance.Get<GameState>();
             _turnController = ServiceLocator.Instance.Get<TurnController>();
+            var cmdProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
 
             SpawnUnits();
+            cmdProcessor.OnUnitKilled += HandleUnitKilled;
+            cmdProcessor.OnUnitDamaged += HandleUnitDamaged;
+            cmdProcessor.OnCommandExecuted += HandleCommandExecuted;
+            _turnController.OnTurnStarted += OnTurnStarted;
             _turnController.StartGame();
+        }
+
+        private void OnDestroy()
+        {
+            var cmdProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
+            if (cmdProcessor == null) return;
+            cmdProcessor.OnUnitKilled -= HandleUnitKilled;
+            cmdProcessor.OnUnitDamaged -= HandleUnitDamaged;
+            cmdProcessor.OnCommandExecuted -= HandleCommandExecuted;
         }
 
         private void SpawnUnits()
@@ -56,6 +71,43 @@ namespace FrontLine.Views
             _unitViews[unitId] = unitView;
         }
 
+        private void HandleCommandExecuted(ICommand command, CommandResult result)
+        {
+            if (!result.Success) return;
+
+            if (command is MoveCommand move)
+            {
+                if (_unitViews.TryGetValue(move.UnitId, out var view))
+                {
+                    view.OnMoved(move.TargetX, move.TargetY);
+                    bool exhausted = !_turnController.HasActionPoints(move.UnitId);
+                    view.SetExhausted(exhausted);
+                }
+            }
+        }
+
+        private void HandleUnitDamaged(UnitData unit)
+        {
+            if (_unitViews.TryGetValue(unit.UnitId, out var view))
+                view.OnDamaged(unit.Health, unit.MaxHealth);
+        }
+
+        private void HandleUnitKilled(string unitId)
+        {
+            if (_unitViews.TryGetValue(unitId, out var view))
+                view.OnKilled();
+
+            _unitViews.Remove(unitId);
+        }
+        private void OnTurnStarted(string playerId)
+        {
+            foreach (var kvp in _unitViews)
+            {
+                var unitData = _gameState.Units[kvp.Key];
+                if (unitData.OwnerId == playerId)
+                    kvp.Value.SetExhausted(false);
+            }
+        }
         public UnitView GetUnitView(string unitId)
         {
             _unitViews.TryGetValue(unitId, out var view);
