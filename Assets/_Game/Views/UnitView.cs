@@ -17,6 +17,7 @@ namespace FrontLine.Views
         private Color _ownerColor;
         private Vector3 _targetPosition;
         private bool _isMoving;
+        private Transform _hpBarAnchor;
 
         [SerializeField] private float _moveSpeed = 5f;
 

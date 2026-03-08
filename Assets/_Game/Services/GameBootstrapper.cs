@@ -3,6 +3,7 @@ using FrontLine.Models;
 using FrontLine.Controllers;
 using FrontLine.Input;
 using FrontLine.Views;
+using FrontLine.UI;
 
 namespace FrontLine.Services
 {
@@ -18,6 +19,7 @@ namespace FrontLine.Services
         [SerializeField] private InputManager _inputManager;
         [SerializeField] private SelectionManager _selectionManager;
         [SerializeField] private CameraController _cameraController;
+        [SerializeField] private HUDController _hudController;
 
         private void Awake()
         {
@@ -41,6 +43,7 @@ namespace FrontLine.Services
             ServiceLocator.Instance.Register(combatResolver);
             ServiceLocator.Instance.Register(cmdProcessor);
             ServiceLocator.Instance.Register(_gridManager);
+            ServiceLocator.Instance.Register(_hudController);
 
             Debug.Log("[GameBootstrapper] Services registered.");
         }
@@ -52,6 +55,7 @@ namespace FrontLine.Services
             _selectionManager.Initialize(_inputManager);
             _cameraController.Initialize(_inputManager);
             _unitSpawner.Initialize();
+            _hudController.Initialize(_selectionManager, _inputManager);
 
             Debug.Log("[GameBootstrapper] Scene initialized.");
         }

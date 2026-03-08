@@ -4,6 +4,7 @@ using FrontLine.Models;
 using FrontLine.Services;
 using FrontLine.Controllers;
 using FrontLine.Commands;
+using FrontLine.UI;
 
 namespace FrontLine.Views
 {
@@ -14,6 +15,7 @@ namespace FrontLine.Views
         [SerializeField] private Color _player1Color = Color.blue;
         [SerializeField] private Color _player2Color = Color.red;
 
+        private HUDController _hudController;
         private GameState _gameState;
         private TurnController _turnController;
         private readonly Dictionary<string, UnitView> _unitViews = new();
@@ -22,6 +24,7 @@ namespace FrontLine.Views
         {
             _gameState = ServiceLocator.Instance.Get<GameState>();
             _turnController = ServiceLocator.Instance.Get<TurnController>();
+            _hudController = ServiceLocator.Instance.Get<HUDController>();
             var cmdProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
 
             SpawnUnits();
@@ -69,6 +72,7 @@ namespace FrontLine.Views
 
             unitObj.name = unitId;
             _unitViews[unitId] = unitView;
+            _hudController.RegisterUnit(unitData, color, unitObj.transform);
         }
 
         private void HandleCommandExecuted(ICommand command, CommandResult result)

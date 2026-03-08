@@ -5,6 +5,7 @@ using FrontLine.Controllers;
 using FrontLine.Services;
 using FrontLine.Commands;
 using FrontLine.Views;
+using FrontLine.UI;
 
 namespace FrontLine.Input
 {
@@ -21,6 +22,7 @@ namespace FrontLine.Input
         [SerializeField] private Color _attackRangeColor = new Color(1f, 0.4f, 0.4f, 1f);
         [SerializeField] private Color _selectedColor = new Color(1f, 1f, 0f, 1f);
 
+        private HUDController _hudController;
         private GameState _gameState;
         private TurnController _turnController;
         private CommandProcessor _commandProcessor;
@@ -38,6 +40,7 @@ namespace FrontLine.Input
             _turnController = ServiceLocator.Instance.Get<TurnController>();
             _commandProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
             _gridManager = ServiceLocator.Instance.Get<GridManager>();
+            _hudController = ServiceLocator.Instance.Get<HUDController>();
             _camera = Camera.main;
 
             _inputManager = inputManager;
@@ -101,12 +104,10 @@ namespace FrontLine.Input
         private void TrySelectUnit(int tileX, int tileY)
         {
             var tile = _gameState.GetTile(tileX, tileY);
-            Debug.Log($"[SelectionManager] TrySelect at ({tileX},{tileY}) — tile null:{tile == null} occupied:{tile?.IsOccupied} occupantId:{tile?.OccupyingUnitId}");
 
             if (tile == null || !tile.IsOccupied) return;
 
             var unit = _gameState.Units[tile.OccupyingUnitId];
-            Debug.Log($"[SelectionManager] Found unit {unit.UnitId} owner:{unit.OwnerId} AP:{unit.ActionPoints} currentPlayer:{_turnController.CurrentPlayerId}");
 
             if (!_turnController.IsCurrentPlayer(unit.OwnerId)) return;
             if (!_turnController.HasActionPoints(unit.UnitId)) return;
@@ -114,6 +115,7 @@ namespace FrontLine.Input
             _selectedUnitId = unit.UnitId;
             _state = SelectionState.UnitSelected;
             HighlightSelection(unit);
+            _hudController.OnUnitSelected(_selectedUnitId);
         }
 
         private void TryActOnTile(int tileX, int tileY)
@@ -196,6 +198,7 @@ namespace FrontLine.Input
             _selectedUnitId = null;
             _state = SelectionState.Idle;
             _gridManager.ResetAllTileColors();
+            _hudController.OnSelectionCleared();
         }
 
         private bool TryGetTileFromHit(RaycastHit hit, out int tileX, out int tileY)
@@ -203,7 +206,7 @@ namespace FrontLine.Input
             float step = _gridManager.TileStep;
             tileX = Mathf.RoundToInt(hit.point.x / step);
             tileY = Mathf.RoundToInt(hit.point.z / step);
-            Debug.Log($"[SelectionManager] Hit point:({hit.point.x:F2},{hit.point.y:F2},{hit.point.z:F2}) → tile:({tileX},{tileY}) hitObject:{hit.collider.gameObject.name}");
+
             return _gameState.IsValidPosition(tileX, tileY);
         }
     }
