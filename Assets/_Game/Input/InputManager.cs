@@ -22,6 +22,7 @@ namespace FrontLine.Input
         private bool _isDragging;
         private Vector2 _holdStartPosition;
         private Vector2 _currentTapPosition;
+        private Vector2 _currentPointerPosition;
 
         public void Initialize()
         {
@@ -62,14 +63,16 @@ namespace FrontLine.Input
 
         private void OnTapPerformed(InputAction.CallbackContext ctx)
         {
-            _currentTapPosition = ctx.ReadValue<Vector2>();
+            var pointerPosition = ctx.ReadValue<Vector2>();
+            _currentTapPosition = pointerPosition;
+            _currentPointerPosition = pointerPosition;
         }
 
         private void OnHoldStarted(InputAction.CallbackContext ctx)
         {
             _isHolding = true;
             _isDragging = false;
-            _holdStartPosition = _currentTapPosition;
+            _holdStartPosition = _currentPointerPosition;
         }
 
         private void OnHoldCanceled(InputAction.CallbackContext ctx)
@@ -89,7 +92,8 @@ namespace FrontLine.Input
             if (!_isHolding) return;
 
             var delta = ctx.ReadValue<Vector2>();
-            float moved = Vector2.Distance(_currentTapPosition, _holdStartPosition);
+            _currentPointerPosition += delta;
+            float moved = Vector2.Distance(_currentPointerPosition, _holdStartPosition);
 
             if (!_isDragging && moved < _dragThresholdPixels) return;
 

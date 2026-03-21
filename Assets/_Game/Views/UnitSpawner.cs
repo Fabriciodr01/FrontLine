@@ -37,11 +37,15 @@ namespace FrontLine.Views
 
         private void OnDestroy()
         {
-            var cmdProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
-            if (cmdProcessor == null) return;
-            cmdProcessor.OnUnitKilled -= HandleUnitKilled;
-            cmdProcessor.OnUnitDamaged -= HandleUnitDamaged;
-            cmdProcessor.OnCommandExecuted -= HandleCommandExecuted;
+            if (ServiceLocator.Instance.TryGet(out CommandProcessor cmdProcessor))
+            {
+                cmdProcessor.OnUnitKilled -= HandleUnitKilled;
+                cmdProcessor.OnUnitDamaged -= HandleUnitDamaged;
+                cmdProcessor.OnCommandExecuted -= HandleCommandExecuted;
+            }
+
+            if (_turnController != null)
+                _turnController.OnTurnStarted -= OnTurnStarted;
         }
 
         private void SpawnUnits()

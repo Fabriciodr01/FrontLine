@@ -63,9 +63,11 @@ namespace FrontLine.Services
 
         public int CalculateHitChance(UnitData attacker, UnitData target)
         {
-            int distance = Math.Max(
-                Math.Abs(target.TileX - attacker.TileX),
-                Math.Abs(target.TileY - attacker.TileY));
+            int distance = GridMath.GetTileDistance(
+                attacker.TileX,
+                attacker.TileY,
+                target.TileX,
+                target.TileY);
 
             int penalty = Math.Max(0, distance - 1) * DistancePenaltyPerTile;
 

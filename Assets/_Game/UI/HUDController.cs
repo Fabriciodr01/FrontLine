@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,10 @@ namespace FrontLine.UI
 {
     public class HUDController : MonoBehaviour
     {
+        [Header("Subcomponents")]
+        [SerializeField] private ActionBarController _actionBar;
+        [SerializeField] private ConfirmationPopup _confirmationPopup;
+
         [Header("Turn Banner")]
         [SerializeField] private GameObject _turnBanner;
         [SerializeField] private TextMeshProUGUI _turnText;
@@ -21,20 +26,19 @@ namespace FrontLine.UI
         [SerializeField] private Transform _unitCardContainer;
         [SerializeField] private GameObject _unitCardPrefab;
 
-        [Header("Action Bar")]
-        [SerializeField] private GameObject _actionBar;
-        [SerializeField] private Button _endTurnButton;
-
         [Header("Feedback")]
         [SerializeField] private TextMeshProUGUI _feedbackText;
 
         [Header("HP Bar")]
         [SerializeField] private GameObject _hpBarPrefab;
 
+        public event Action<ActionType> OnActionPressed;
+        public event Action OnPopupExecute;
+        public event Action OnPopupCancel;
+
         private GameState _gameState;
         private TurnController _turnController;
         private CommandProcessor _commandProcessor;
-        private SelectionManager _selectionManager;
         private InputManager _inputManager;
 
         private readonly Dictionary<string, UnitCard> _unitCards = new();
@@ -42,23 +46,27 @@ namespace FrontLine.UI
 
         private Coroutine _feedbackCoroutine;
         private Coroutine _bannerCoroutine;
+        private bool _subcomponentEventsSubscribed;
 
-        public void Initialize(SelectionManager selectionManager, InputManager inputManager)
+        public void Initialize(InputManager inputManager)
         {
             _gameState = ServiceLocator.Instance.Get<GameState>();
             _turnController = ServiceLocator.Instance.Get<TurnController>();
             _commandProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
-            _selectionManager = selectionManager;
             _inputManager = inputManager;
 
-            SubscribeEvents();
-            SetupEndTurnButton(inputManager);
+            _actionBar.Initialize();
+            _confirmationPopup.Initialize();
+            SubscribeGameEvents();
+            SubscribeSubcomponentEvents();
+            SetupEndTurnButton();
 
-            _actionBar.SetActive(false);
             _turnBanner.SetActive(false);
+            _actionBar.Hide();
+            _confirmationPopup.Hide();
         }
 
-        private void SubscribeEvents()
+        private void SubscribeGameEvents()
         {
             _turnController.OnTurnStarted += HandleTurnStarted;
             _turnController.OnTurnEnded += HandleTurnEnded;
@@ -68,38 +76,51 @@ namespace FrontLine.UI
             _commandProcessor.OnUnitKilled += HandleUnitKilled;
         }
 
+        private void SubscribeSubcomponentEvents()
+        {
+            // Forward subcomponent events upward — SelectionManager never touches subcomponents
+            _actionBar.OnActionPressed += HandleActionBarActionPressed;
+            _actionBar.OnEndTurnPressed += HandleEndTurnPressed;
+            _confirmationPopup.OnExecute += HandlePopupExecuteForwarded;
+            _confirmationPopup.OnCancel += HandlePopupCancelForwarded;
+            _subcomponentEventsSubscribed = true;
+        }
+
+        private void SetupEndTurnButton()
+        {
+            _inputManager.OnEndTurn += HandleEndTurnPressed;
+        }
+
         private void OnDestroy()
         {
-            _turnController.OnTurnStarted -= HandleTurnStarted;
-            _turnController.OnTurnEnded -= HandleTurnEnded;
-            _turnController.OnGameOver -= HandleGameOver;
-            _commandProcessor.OnCommandExecuted -= HandleCommandExecuted;
-            _commandProcessor.OnUnitDamaged -= HandleUnitDamaged;
-            _commandProcessor.OnUnitKilled -= HandleUnitKilled;
-        }
-
-        private void SetupEndTurnButton(InputManager inputManager)
-        {
-            // Wire button click
-            _endTurnButton.onClick.AddListener(() =>
+            if (_turnController != null)
             {
-                var cmd = new EndTurnCommand(_turnController.CurrentPlayerId);
-                _commandProcessor.Process(cmd);
-            });
+                _turnController.OnTurnStarted -= HandleTurnStarted;
+                _turnController.OnTurnEnded -= HandleTurnEnded;
+                _turnController.OnGameOver -= HandleGameOver;
+            }
 
-            // Also wire keyboard spacebar via InputManager
-            inputManager.OnEndTurn += () =>
+            if (_commandProcessor != null)
             {
-                var cmd = new EndTurnCommand(_turnController.CurrentPlayerId);
-                _commandProcessor.Process(cmd);
-            };
-        }
+                _commandProcessor.OnCommandExecuted -= HandleCommandExecuted;
+                _commandProcessor.OnUnitDamaged -= HandleUnitDamaged;
+                _commandProcessor.OnUnitKilled -= HandleUnitKilled;
+            }
 
-        // ── Unit Cards ──────────────────────────────────────────────────
+            if (_subcomponentEventsSubscribed)
+            {
+                _actionBar.OnActionPressed -= HandleActionBarActionPressed;
+                _actionBar.OnEndTurnPressed -= HandleEndTurnPressed;
+                _confirmationPopup.OnExecute -= HandlePopupExecuteForwarded;
+                _confirmationPopup.OnCancel -= HandlePopupCancelForwarded;
+            }
+
+            if (_inputManager != null)
+                _inputManager.OnEndTurn -= HandleEndTurnPressed;
+        }
 
         public void RegisterUnit(UnitData unit, Color ownerColor, Transform unitTransform)
         {
-            // Unit card — only for Player 1 units for now
             if (unit.OwnerId == "Player1")
             {
                 var cardObj = Instantiate(_unitCardPrefab, _unitCardContainer);
@@ -108,7 +129,6 @@ namespace FrontLine.UI
                 _unitCards[unit.UnitId] = unitCard;
             }
 
-            // HP bar for all units
             var hpBarObj = Instantiate(_hpBarPrefab, unitTransform);
             var hpBar = hpBarObj.GetComponent<WorldSpaceHPBar>();
             hpBar.Initialize();
@@ -119,7 +139,11 @@ namespace FrontLine.UI
 
         public void OnUnitSelected(string unitId)
         {
-            _actionBar.SetActive(true);
+            if (!_gameState.Units.TryGetValue(unitId, out var unit)) return;
+
+            bool hasAP = _turnController.HasActionPoints(unitId);
+            _actionBar.RefreshForUnit(hasAP, hasAP);
+            _actionBar.Show();
 
             foreach (var kvp in _unitCards)
                 kvp.Value.SetSelected(kvp.Key == unitId);
@@ -130,7 +154,8 @@ namespace FrontLine.UI
 
         public void OnSelectionCleared()
         {
-            _actionBar.SetActive(false);
+            _actionBar.Hide();
+            _confirmationPopup.Hide();
 
             foreach (var kvp in _unitCards)
                 kvp.Value.SetSelected(false);
@@ -139,45 +164,63 @@ namespace FrontLine.UI
                 kvp.Value.SetActive(false);
         }
 
-        // ── Event Handlers ──────────────────────────────────────────────
+        public void SetActionSelected(ActionType actionType, bool selected)
+            => _actionBar.SetActionSelected(actionType, selected);
+
+        public void ShowMoveConfirmation(int fromX, int fromY, int toX, int toY)
+            => _confirmationPopup.ShowMove(fromX, fromY, toX, toY);
+
+        public void ShowShootConfirmation(string targetId, int hitChance, int damage)
+            => _confirmationPopup.ShowShoot(targetId, hitChance, damage);
+
+        public void HideConfirmation()
+            => _confirmationPopup.Hide();
+
+        private void HandleActionBarActionPressed(ActionType action)
+            => OnActionPressed?.Invoke(action);
+
+        private void HandlePopupExecuteForwarded()
+            => OnPopupExecute?.Invoke();
+
+        private void HandlePopupCancelForwarded()
+            => OnPopupCancel?.Invoke();
+
+        private void HandleEndTurnPressed()
+        {
+            var cmd = new EndTurnCommand(_turnController.CurrentPlayerId);
+            _commandProcessor.Process(cmd);
+        }
 
         private void HandleTurnStarted(string playerId)
         {
-            string label = playerId == "Player1" ? "YOUR TURN" : "ENEMY TURN";
+            string label = playerId == "Player1" ? "SUA VEZ" : "VEZ DO INIMIGO";
 
             if (_bannerCoroutine != null) StopCoroutine(_bannerCoroutine);
             _bannerCoroutine = StartCoroutine(ShowTurnBanner(label));
 
-            // Refresh all unit cards
             foreach (var kvp in _unitCards)
-            {
                 if (_gameState.Units.TryGetValue(kvp.Key, out var unit))
                     kvp.Value.Refresh(unit);
-            }
 
-            // Show action bar only on player turn
-            bool isPlayerTurn = playerId == "Player1";
-            _endTurnButton.interactable = isPlayerTurn;
+            _actionBar.SetEndTurnInteractable(playerId == "Player1");
         }
 
         private void HandleTurnEnded(string playerId)
         {
-            _actionBar.SetActive(false);
             OnSelectionCleared();
         }
 
         private void HandleGameOver(string winnerId)
         {
-            string msg = winnerId == "Player1" ? "VICTORY" : "DEFEAT";
+            string msg = winnerId == "Player1" ? "VITÓRIA!" : "DERROTA!";
             ShowFeedback(msg, 999f);
-            _actionBar.SetActive(false);
+            OnSelectionCleared();
         }
 
         private void HandleCommandExecuted(ICommand command, CommandResult result)
         {
             if (!result.Success) return;
 
-            // Refresh card for the acting unit
             if (command.UnitId != null &&
                 _unitCards.TryGetValue(command.UnitId, out var card) &&
                 _gameState.Units.TryGetValue(command.UnitId, out var unit))
@@ -212,14 +255,11 @@ namespace FrontLine.UI
             }
         }
 
-        // ── Coroutines ──────────────────────────────────────────────────
-
         private IEnumerator ShowTurnBanner(string message)
         {
             _turnText.text = message;
             _turnBanner.SetActive(true);
 
-            // Fade in
             var img = _turnBanner.GetComponent<Image>();
             float t = 0f;
             while (t < 0.3f)
@@ -231,7 +271,6 @@ namespace FrontLine.UI
 
             yield return new WaitForSeconds(1.2f);
 
-            // Fade out
             t = 0f;
             while (t < 0.4f)
             {
@@ -265,7 +304,7 @@ namespace FrontLine.UI
             _feedbackText.text = message;
             _feedbackText.alpha = 1f;
 
-            yield return new WaitForSeconds(duration - 0.5f);
+            yield return new WaitForSeconds(Mathf.Max(0f, duration - 0.5f));
 
             float t = 0f;
             while (t < 0.5f)

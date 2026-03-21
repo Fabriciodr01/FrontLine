@@ -52,10 +52,10 @@ namespace FrontLine.Services
         {
             _gridManager.Initialize();
             _inputManager.Initialize();
-            _selectionManager.Initialize(_inputManager);
+            _hudController.Initialize(_inputManager);
+            _selectionManager.Initialize(_inputManager, _hudController);
             _cameraController.Initialize(_inputManager);
             _unitSpawner.Initialize();
-            _hudController.Initialize(_selectionManager, _inputManager);
 
             Debug.Log("[GameBootstrapper] Scene initialized.");
         }

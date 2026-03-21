@@ -24,10 +24,11 @@ namespace FrontLine.Controllers
 
         public void StartGame()
         {
-            _stateMachine.TryTransition(GamePhase.Setup);
-            _stateMachine.TryTransition(GamePhase.Player1Turn);
+            TransitionTo(GamePhase.Setup);
+            TransitionTo(GamePhase.Player1Turn);
             CurrentPlayerId = "Player1";
             _gameState.TurnNumber = 1;
+            _gameState.WinnerPlayerId = null;
             ResetActionPoints(CurrentPlayerId);
             OnTurnStarted?.Invoke(CurrentPlayerId);
         }
@@ -45,7 +46,8 @@ namespace FrontLine.Controllers
 
             if (CheckWinCondition(out string winnerId))
             {
-                _stateMachine.TryTransition(GamePhase.GameOver);
+                _gameState.WinnerPlayerId = winnerId;
+                TransitionTo(GamePhase.GameOver);
                 OnGameOver?.Invoke(winnerId);
                 return;
             }
@@ -73,12 +75,12 @@ namespace FrontLine.Controllers
         {
             if (CurrentPlayerId == "Player1")
             {
-                _stateMachine.TryTransition(GamePhase.Player2Turn);
+                TransitionTo(GamePhase.Player2Turn);
                 CurrentPlayerId = "Player2";
             }
             else
             {
-                _stateMachine.TryTransition(GamePhase.Player1Turn);
+                TransitionTo(GamePhase.Player1Turn);
                 CurrentPlayerId = "Player1";
                 _gameState.TurnNumber++;
             }
@@ -91,6 +93,12 @@ namespace FrontLine.Controllers
         {
             foreach (var unit in _gameState.Units.Values.Where(u => u.OwnerId == playerId))
                 unit.ResetActionPoints();
+        }
+
+        private void TransitionTo(GamePhase phase)
+        {
+            if (_stateMachine.TryTransition(phase))
+                _gameState.CurrentPhase = phase;
         }
 
         private bool CheckWinCondition(out string winnerId)
