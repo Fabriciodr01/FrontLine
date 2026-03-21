@@ -1,5 +1,6 @@
 using FrontLine.Models;
 using FrontLine.Controllers;
+using FrontLine.Services;
 
 namespace FrontLine.Commands
 {
@@ -44,10 +45,7 @@ namespace FrontLine.Commands
                 return CommandResult.Fail($"Tile ({TargetX},{TargetY}) is not walkable.");
 
             // Validate move range - Chebyshev distance treats diagonal movement as cost 1, same as cardinal
-            int distance = System.Math.Max(
-                System.Math.Abs(TargetX - unit.TileX),
-                System.Math.Abs(TargetY - unit.TileY)
-            );
+            int distance = GridMath.GetTileDistance(unit.TileX, unit.TileY, TargetX, TargetY);
 
             if (distance > unit.MoveRange)
                 return CommandResult.Fail($"Target is out of move range. Distance:{distance} Range:{unit.MoveRange}");

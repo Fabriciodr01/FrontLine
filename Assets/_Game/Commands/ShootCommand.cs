@@ -47,8 +47,11 @@ namespace FrontLine.Commands
                 return CommandResult.Fail($"Target {TargetUnitId} is already dead.");
 
             // Validate attack range
-            int distance = System.Math.Abs(target.TileX - attacker.TileX)
-                         + System.Math.Abs(target.TileY - attacker.TileY);
+            int distance = GridMath.GetTileDistance(
+                attacker.TileX,
+                attacker.TileY,
+                target.TileX,
+                target.TileY);
 
             if (distance > attacker.AttackRange)
                 return CommandResult.Fail($"Target out of attack range. Distance:{distance} Range:{attacker.AttackRange}");
