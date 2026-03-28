@@ -26,13 +26,13 @@ namespace FrontLine.Models
             TileX = tileX;
             TileY = tileY;
 
-            // TODO: Alpha defaults — we'll make these configurable later
+            // TODO-POST-ALPHA: Alpha defaults — we'll make these configurable later with SO
             MaxHealth = 3;
             Health = MaxHealth;
             MaxActionPoints = 2;
             ActionPoints = MaxActionPoints;
             MoveRange = 3;
-            AttackRange = 2;
+            AttackRange = 4;
             Damage = 1;
         }
 

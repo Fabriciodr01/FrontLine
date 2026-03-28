@@ -19,8 +19,7 @@ namespace FrontLine.Commands
 
         public CommandResult Execute(GameState gameState, TurnController turnController)
         {
-            //TODO: temporary Guard Clause pattern, refactor later to a
-            // CommandResult ValidateBasics(GameState state, TurnController turn)
+            //TODO-POST-ALPHA: temporary Guard Clause pattern, refactor later for a better validation system or abstraction
 
             // Validate turn
             if (!turnController.IsCurrentPlayer(PlayerId))

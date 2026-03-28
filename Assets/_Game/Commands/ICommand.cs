@@ -6,8 +6,8 @@ namespace FrontLine.Commands
         string UnitId { get; }
 
         CommandResult Execute(
-            FrontLine.Models.GameState gameState,
-            FrontLine.Controllers.TurnController turnController);
+            Models.GameState gameState,
+            Controllers.TurnController turnController);
     }
 
     public class CommandResult
