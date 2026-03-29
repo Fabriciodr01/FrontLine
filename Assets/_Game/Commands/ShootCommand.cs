@@ -55,6 +55,11 @@ namespace FrontLine.Commands
             if (distance > attacker.AttackRange)
                 return CommandResult.Fail($"Target out of attack range. Distance:{distance} Range:{attacker.AttackRange}");
 
+            // Validate line of sight
+            var los = ServiceLocator.Instance.Get<LineOfSightService>();
+            if (!los.HasLOS(attacker.TileX, attacker.TileY, target.TileX, target.TileY))
+                return CommandResult.Fail("No line of sight.");
+
             // Execute — apply damage
             var resolver = ServiceLocator.Instance.Get<CombatResolver>();
             var combatResult = resolver.Resolve(attacker, target);
@@ -64,7 +69,7 @@ namespace FrontLine.Commands
             if (!combatResult.Hit)
                 return CommandResult.Ok($"MISS. {combatResult}");
 
-            target.TakeDamage(combatResult.DamageDealt);
+            target.Health.TakeDamage(combatResult.DamageDealt);
 
             if (combatResult.Killed)
             {

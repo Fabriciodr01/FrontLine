@@ -51,14 +51,14 @@ namespace FrontLine.Views
         private void SpawnUnits()
         {
             // Player 1 units — bottom of grid
-            SpawnUnit("P1_Unit1", "Player1", 1, 1);
-            SpawnUnit("P1_Unit2", "Player1", 3, 1);
-            SpawnUnit("P1_Unit3", "Player1", 5, 1);
+            SpawnUnit("P1_Unit1", "Player1", 2,  1);
+            SpawnUnit("P1_Unit2", "Player1", 7,  1);
+            SpawnUnit("P1_Unit3", "Player1", 12, 1);
 
             // Player 2 units — top of grid
-            SpawnUnit("P2_Unit1", "Player2", 1, 8);
-            SpawnUnit("P2_Unit2", "Player2", 3, 8);
-            SpawnUnit("P2_Unit3", "Player2", 5, 8);
+            SpawnUnit("P2_Unit1", "Player2", 2,  12);
+            SpawnUnit("P2_Unit2", "Player2", 7,  12);
+            SpawnUnit("P2_Unit3", "Player2", 12, 12);
         }
 
         private void SpawnUnit(string unitId, string ownerId, int tileX, int tileY)
@@ -97,7 +97,7 @@ namespace FrontLine.Views
         private void HandleUnitDamaged(UnitData unit)
         {
             if (_unitViews.TryGetValue(unit.UnitId, out var view))
-                view.OnDamaged(unit.Health, unit.MaxHealth);
+                view.OnDamaged(unit.Health.Current, unit.Health.Max);
         }
 
         private void HandleUnitKilled(string unitId)

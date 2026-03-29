@@ -8,8 +8,7 @@ namespace FrontLine.Models
         public int TileX { get; set; }
         public int TileY { get; set; }
 
-        public int Health { get; set; }
-        public int MaxHealth { get; private set; }
+        public HealthComponent Health { get; private set; }
         public int ActionPoints { get; set; }
         public int MaxActionPoints { get; private set; }
 
@@ -17,7 +16,7 @@ namespace FrontLine.Models
         public int AttackRange { get; private set; }
         public int Damage { get; private set; }
 
-        public bool IsAlive => Health > 0;
+        public bool IsAlive => Health.IsAlive;
 
         public UnitData(string unitId, string ownerId, int tileX, int tileY)
         {
@@ -27,8 +26,7 @@ namespace FrontLine.Models
             TileY = tileY;
 
             // TODO-POST-ALPHA: Alpha defaults — we'll make these configurable later with SO
-            MaxHealth = 3;
-            Health = MaxHealth;
+            Health = new HealthComponent(3);
             MaxActionPoints = 2;
             ActionPoints = MaxActionPoints;
             MoveRange = 3;
@@ -38,13 +36,7 @@ namespace FrontLine.Models
 
         public void ResetActionPoints() => ActionPoints = MaxActionPoints;
 
-        public void TakeDamage(int amount)
-        {
-            Health -= amount;
-            if (Health < 0) Health = 0;
-        }
-
         public override string ToString()
-            => $"Unit({UnitId}) Owner:{OwnerId} HP:{Health}/{MaxHealth} AP:{ActionPoints}";
+            => $"Unit({UnitId}) Owner:{OwnerId} HP:{Health.Current}/{Health.Max} AP:{ActionPoints}";
     }
 }
