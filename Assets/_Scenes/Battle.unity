@@ -436,6 +436,50 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &264562888
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 264562890}
+  - component: {fileID: 264562889}
+  m_Layer: 0
+  m_Name: AIPlayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &264562889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 264562888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f18b492ddbc901243b916aa4eca73f84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FrontLine.AI.AIInputHandler
+--- !u!4 &264562890
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 264562888}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 473.41504, y: 211.49312, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &281116273
 GameObject:
   m_ObjectHideFlags: 0
@@ -795,14 +839,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb3f9f3d8b51ab04ab20704373786299, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FrontLine.Services.GameBootstrapper
-  _gridWidth: 10
-  _gridHeight: 10
+  _gridWidth: 16
+  _gridHeight: 14
   _gridManager: {fileID: 1479025762}
   _unitSpawner: {fileID: 1911939426}
   _inputManager: {fileID: 2012738088}
   _selectionManager: {fileID: 281116274}
   _cameraController: {fileID: 330585548}
   _hudController: {fileID: 1296124444}
+  _aiInputHandler: {fileID: 264562889}
 --- !u!4 &585491145
 Transform:
   m_ObjectHideFlags: 0
@@ -2185,8 +2230,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FrontLine.Views.UnitSpawner
   _unitPrefab: {fileID: 3015765295127903994, guid: a4cb2b05ef2d0ff42aa1b00c3f78c05d, type: 3}
-  _player1Color: {r: 0, g: 0, b: 1, a: 1}
-  _player2Color: {r: 1, g: 0, b: 0, a: 1}
+  _player1Color: {r: 0.12629052, g: 0.6292693, b: 0.8113208, a: 1}
+  _player2Color: {r: 0.8490566, g: 0.714569, b: 0.1481844, a: 1}
 --- !u!4 &1911939427
 Transform:
   m_ObjectHideFlags: 0
@@ -3631,4 +3676,5 @@ SceneRoots:
   - {fileID: 281116275}
   - {fileID: 2012738089}
   - {fileID: 655014995}
+  - {fileID: 264562890}
   - {fileID: 1296124443}
