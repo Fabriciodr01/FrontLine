@@ -132,7 +132,7 @@ namespace FrontLine.UI
             var hpBarObj = Instantiate(_hpBarPrefab, unitTransform);
             var hpBar = hpBarObj.GetComponent<WorldSpaceHPBar>();
             hpBar.Initialize();
-            hpBar.UpdateHP(unit.Health, unit.MaxHealth);
+            hpBar.UpdateHP(unit.Health.Current, unit.Health.Max);
             hpBar.SetActive(false);
             _hpBars[unit.UnitId] = hpBar;
         }
@@ -234,7 +234,7 @@ namespace FrontLine.UI
         private void HandleUnitDamaged(UnitData unit)
         {
             if (_hpBars.TryGetValue(unit.UnitId, out var bar))
-                bar.UpdateHP(unit.Health, unit.MaxHealth);
+                bar.UpdateHP(unit.Health.Current, unit.Health.Max);
 
             if (_unitCards.TryGetValue(unit.UnitId, out var card))
                 card.Refresh(unit);

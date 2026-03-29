@@ -30,9 +30,12 @@ namespace FrontLine.Input
         private CommandProcessor _commandProcessor;
         private GridManager _gridManager;
         private CombatResolver _combatResolver;
+        private LineOfSightService _losService;
         private InputManager _inputManager;
         private HUDController _hudController;
         private Camera _camera;
+
+        private bool _inputEnabled;
 
         private SelectionState _state = SelectionState.Idle;
         private string _selectedUnitId;
@@ -49,15 +52,30 @@ namespace FrontLine.Input
             _commandProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
             _gridManager = ServiceLocator.Instance.Get<GridManager>();
             _combatResolver = ServiceLocator.Instance.Get<CombatResolver>();
+            _losService = ServiceLocator.Instance.Get<LineOfSightService>();
             _camera = Camera.main;
             _inputManager = inputManager;
             _hudController = hudController;
+
+            _inputEnabled = false;
 
             _inputManager.OnTapWorld += HandleTap;
             _inputManager.OnCancel += ClearSelection;
             _hudController.OnActionPressed += HandleAction;
             _hudController.OnPopupExecute += HandlePopupExecute;
             _hudController.OnPopupCancel += HandlePopupCancel;
+        }
+
+        public void OnTurnStarted(string playerId)
+        {
+            _inputEnabled = playerId == "Player1";
+            if (!_inputEnabled)
+                ClearSelection();
+        }
+
+        public void OnTurnEnded(string playerId)
+        {
+            _inputEnabled = false;
         }
 
         private void OnDestroy()
@@ -78,6 +96,7 @@ namespace FrontLine.Input
 
         private void HandleTap(Vector2 screenPosition)
         {
+            if (!_inputEnabled) return;
             _pendingTap = screenPosition;
         }
 
@@ -131,6 +150,7 @@ namespace FrontLine.Input
 
         private void HandleAction(ActionType action)
         {
+            if (!_inputEnabled) return;
             switch (action)
             {
                 case ActionType.Move:
@@ -234,6 +254,8 @@ namespace FrontLine.Input
 
             if (dist > attacker.AttackRange) return;
 
+            if (!_losService.HasLOS(attacker.TileX, attacker.TileY, target.TileX, target.TileY)) return;
+
             _pendingTargetId = target.UnitId;
 
             int hitChance = _combatResolver.CalculateHitChance(attacker, target);
@@ -320,7 +342,8 @@ namespace FrontLine.Input
                     target.TileX,
                     target.TileY);
 
-                if (dist <= unit.AttackRange)
+                if (dist <= unit.AttackRange &&
+                    _losService.HasLOS(unit.TileX, unit.TileY, target.TileX, target.TileY))
                     _gridManager.HighlightTile(target.TileX, target.TileY, _attackRangeColor);
             }
         }

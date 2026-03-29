@@ -42,14 +42,14 @@ namespace FrontLine.UI
 
             if (_unitHPText != null)
             {
-                _unitHPText.text = $"HP  {unit.Health}/{unit.MaxHealth}";
-                _unitHPText.color = unit.Health <= 1
+                _unitHPText.text = $"HP  {unit.Health.Current}/{unit.Health.Max}";
+                _unitHPText.color = unit.Health.Current <= 1
                     ? Color.red
                     : new Color(0.4f, 1f, 0.4f);
             }
 
             if (_hpSlider != null)
-                _hpSlider.value = (float)unit.Health / unit.MaxHealth;
+                _hpSlider.value = (float)unit.Health.Current / unit.Health.Max;
 
             if (_unitAPText != null)
             {
