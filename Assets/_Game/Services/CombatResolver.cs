@@ -56,7 +56,7 @@ namespace FrontLine.Services
                 return CombatResult.Miss(roll, hitChance);
 
             int damage = attacker.Damage;
-            bool killed = (target.Health - damage) <= 0;
+            bool killed = (target.Health.Current - damage) <= 0;
 
             return CombatResult.Success(damage, killed, roll, hitChance);
         }

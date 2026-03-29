@@ -13,8 +13,11 @@ namespace FrontLine.Views
         [SerializeField] private float _tileSpacing = 0.05f;
 
         public float TileStep => _tileSize + _tileSpacing;
+        private static readonly Color ObstacleColor = new Color(0.25f, 0.2f, 0.18f, 1f);
+
         private GameState _gameState;
         private GameObject[,] _tileObjects;
+        private Color[,] _baseTileColors;
 
         public void Initialize()
         {
@@ -25,14 +28,24 @@ namespace FrontLine.Views
         private void SpawnGrid()
         {
             _tileObjects = new GameObject[_gameState.GridWidth, _gameState.GridHeight];
+            _baseTileColors = new Color[_gameState.GridWidth, _gameState.GridHeight];
 
             for (int x = 0; x < _gameState.GridWidth; x++)
             {
                 for (int y = 0; y < _gameState.GridHeight; y++)
                 {
                     SpawnTile(x, y);
+                    var tile = _gameState.GetTile(x, y);
+                    _baseTileColors[x, y] = tile != null && tile.Type == TileType.Blocked
+                        ? ObstacleColor
+                        : Color.white;
                 }
             }
+
+            // Apply base colors so obstacles are immediately visible
+            for (int x = 0; x < _gameState.GridWidth; x++)
+                for (int y = 0; y < _gameState.GridHeight; y++)
+                    HighlightTile(x, y, _baseTileColors[x, y]);
 
             CenterCameraOnGrid();
         }
@@ -91,7 +104,9 @@ namespace FrontLine.Views
 
         public void ResetTileColor(int x, int y)
         {
-            HighlightTile(x, y, Color.white);
+            if (_baseTileColors == null) return;
+            if (x < 0 || x >= _gameState.GridWidth || y < 0 || y >= _gameState.GridHeight) return;
+            HighlightTile(x, y, _baseTileColors[x, y]);
         }
 
         public void ResetAllTileColors()
