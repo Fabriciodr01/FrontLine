@@ -52,7 +52,7 @@ namespace FrontLine.Services
             int hitChance = CalculateHitChance(attacker, target);
             int roll = _random.Next(1, 101); // 1 to 100 inclusive
 
-            if (roll <= hitChance)
+            if (roll > hitChance)
                 return CombatResult.Miss(roll, hitChance);
 
             int damage = attacker.Damage;

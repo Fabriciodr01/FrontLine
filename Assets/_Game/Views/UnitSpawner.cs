@@ -87,7 +87,7 @@ namespace FrontLine.Views
             {
                 if (_unitViews.TryGetValue(move.UnitId, out var view))
                 {
-                    view.OnMoved(move.TargetX, move.TargetY);
+                    view.OnMoved(move.Path);
                     bool exhausted = !_turnController.HasActionPoints(move.UnitId);
                     view.SetExhausted(exhausted);
                 }

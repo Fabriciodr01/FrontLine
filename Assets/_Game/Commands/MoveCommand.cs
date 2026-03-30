@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FrontLine.Models;
 using FrontLine.Controllers;
 using FrontLine.Services;
@@ -10,6 +11,8 @@ namespace FrontLine.Commands
         public string UnitId { get; private set; }
         public int TargetX { get; private set; }
         public int TargetY { get; private set; }
+        // Populated during Execute — the tile-by-tile path the unit took.
+        public List<(int x, int y)> Path { get; private set; }
 
         public MoveCommand(string playerId, string unitId, int targetX, int targetY)
         {
@@ -44,11 +47,13 @@ namespace FrontLine.Commands
             if (!targetTile.IsWalkable())
                 return CommandResult.Fail($"Tile ({TargetX},{TargetY}) is not walkable.");
 
-            // Validate move range - Chebyshev distance treats diagonal movement as cost 1, same as cardinal
-            int distance = GridMath.GetTileDistance(unit.TileX, unit.TileY, TargetX, TargetY);
+            // Validate move range — BFS ensures the path goes through walkable tiles only
+            var reachable = GridMath.GetReachableTiles(gameState, unit.TileX, unit.TileY, unit.MoveRange);
+            if (!reachable.Contains((TargetX, TargetY)))
+                return CommandResult.Fail($"Target ({TargetX},{TargetY}) is not reachable within move range {unit.MoveRange}.");
 
-            if (distance > unit.MoveRange)
-                return CommandResult.Fail($"Target is out of move range. Distance:{distance} Range:{unit.MoveRange}");
+            // Compute path before state mutation (unit position still reflects origin)
+            Path = GridMath.GetPath(gameState, unit.TileX, unit.TileY, TargetX, TargetY);
 
             // Execute — update old tile
             var oldTile = gameState.GetTile(unit.TileX, unit.TileY);

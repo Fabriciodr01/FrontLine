@@ -219,12 +219,10 @@ namespace FrontLine.Input
         {
             if (!_gameState.Units.TryGetValue(_selectedUnitId, out var unit)) return;
 
-            var tile = _gameState.GetTile(tileX, tileY);
-            if (tile == null || !tile.IsWalkable()) return;
+            if (tileX == unit.TileX && tileY == unit.TileY) return;
 
-            int dist = GridMath.GetTileDistance(unit.TileX, unit.TileY, tileX, tileY);
-
-            if (dist > unit.MoveRange || dist == 0) return;
+            var reachable = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.MoveRange);
+            if (!reachable.Contains((tileX, tileY))) return;
 
             _pendingMoveX = tileX;
             _pendingMoveY = tileY;
@@ -310,19 +308,9 @@ namespace FrontLine.Input
             _gridManager.ResetAllTileColors();
             _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
 
-            for (int x = 0; x < _gameState.GridWidth; x++)
-            {
-                for (int y = 0; y < _gameState.GridHeight; y++)
-                {
-                    var tile = _gameState.GetTile(x, y);
-                    if (tile == null || !tile.IsWalkable()) continue;
-
-                    int dist = GridMath.GetTileDistance(unit.TileX, unit.TileY, x, y);
-
-                    if (dist <= unit.MoveRange && dist > 0)
-                        _gridManager.HighlightTile(x, y, _moveRangeColor);
-                }
-            }
+            var reachable = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.MoveRange);
+            foreach (var (x, y) in reachable)
+                _gridManager.HighlightTile(x, y, _moveRangeColor);
         }
 
         private void HighlightAttackRange()

@@ -1,7 +1,8 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using FrontLine.Models;
 using FrontLine.Services;
-using System.Collections;
 
 namespace FrontLine.Views
 {
@@ -12,11 +13,9 @@ namespace FrontLine.Views
         private GameState _gameState;
         private GridManager _gridManager;
 
-        // Visual state
         private Renderer _renderer;
         private Color _ownerColor;
-        private Vector3 _targetPosition;
-        private bool _isMoving;
+        private Coroutine _moveCoroutine;
         private Transform _hpBarAnchor;
 
         [SerializeField] private float _moveSpeed = 5f;
@@ -41,27 +40,27 @@ namespace FrontLine.Views
             }
         }
 
-        private void Update()
+        public void OnMoved(List<(int x, int y)> path)
         {
-            if (!_isMoving) return;
-
-            transform.position = Vector3.MoveTowards(
-                transform.position,
-                _targetPosition,
-                _moveSpeed * Time.deltaTime);
-
-            if (Vector3.Distance(transform.position, _targetPosition) < 0.01f)
-            {
-                transform.position = _targetPosition;
-                _isMoving = false;
-            }
+            if (_moveCoroutine != null) StopCoroutine(_moveCoroutine);
+            if (path != null && path.Count > 0)
+                _moveCoroutine = StartCoroutine(FollowPath(path));
         }
 
-        public void OnMoved(int targetX, int targetY)
+        private IEnumerator FollowPath(List<(int x, int y)> path)
         {
-            _targetPosition = _gridManager.GetWorldPosition(targetX, targetY)
-                + Vector3.up * 0.6f;
-            _isMoving = true;
+            foreach (var (tileX, tileY) in path)
+            {
+                var target = _gridManager.GetWorldPosition(tileX, tileY) + Vector3.up * 0.6f;
+                while (Vector3.Distance(transform.position, target) >= 0.01f)
+                {
+                    transform.position = Vector3.MoveTowards(
+                        transform.position, target, _moveSpeed * Time.deltaTime);
+                    yield return null;
+                }
+                transform.position = target;
+            }
+            _moveCoroutine = null;
         }
 
         public void OnDamaged(int currentHealth, int maxHealth)
