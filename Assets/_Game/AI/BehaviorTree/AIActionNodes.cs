@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using FrontLine.Models;
 using FrontLine.Controllers;
@@ -72,28 +71,15 @@ namespace FrontLine.AI
 
             if (enemy == null) return NodeStatus.Failure;
 
-            int dx = Math.Sign(enemy.TileX - _unit.TileX);
-            int dy = Math.Sign(enemy.TileY - _unit.TileY);
+            var reachable = GridMath.GetReachableTiles(_gameState, _unit.TileX, _unit.TileY, _unit.MoveRange);
+            if (reachable.Count == 0) return NodeStatus.Failure;
 
-            // Try diagonal first, then cardinal axes
-            var candidates = new[]
-            {
-                (_unit.TileX + dx, _unit.TileY + dy),
-                (_unit.TileX + dx, _unit.TileY),
-                (_unit.TileX,      _unit.TileY + dy),
-            };
+            var best = reachable
+                .OrderBy(t => GridMath.GetTileDistance(t.x, t.y, enemy.TileX, enemy.TileY))
+                .First();
 
-            foreach (var (cx, cy) in candidates)
-            {
-                var tile = _gameState.GetTile(cx, cy);
-                if (tile == null || !tile.IsWalkable()) continue;
-
-                var result = _commandProcessor.Process(new MoveCommand(_aiPlayerId, _unit.UnitId, cx, cy));
-                if (result.Success) return NodeStatus.Success;
-                // fall through to next candidate if command failed despite walkable tile
-            }
-
-            return NodeStatus.Failure;
+            var result = _commandProcessor.Process(new MoveCommand(_aiPlayerId, _unit.UnitId, best.x, best.y));
+            return result.Success ? NodeStatus.Success : NodeStatus.Failure;
         }
     }
 }
