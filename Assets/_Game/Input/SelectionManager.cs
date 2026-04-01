@@ -21,6 +21,8 @@ namespace FrontLine.Input
     {
         [Header("Highlight Colors")]
         [SerializeField] private Color _moveRangeColor = new Color(0.4f, 0.8f, 1f, 1f);
+        [SerializeField] private Color _dashRangeColor = new Color(1f, 0.85f, 0.2f, 1f);
+        [SerializeField] private Color _pathPreviewColor = new Color(0.7f, 0.95f, 1f, 1f);
         [SerializeField] private Color _attackRangeColor = new Color(1f, 0.4f, 0.4f, 1f);
         [SerializeField] private Color _selectedColor = new Color(1f, 1f, 0f, 1f);
         [SerializeField] private Color _pendingColor = new Color(0.4f, 1f, 0.4f, 1f);
@@ -43,6 +45,7 @@ namespace FrontLine.Input
 
         private int _pendingMoveX;
         private int _pendingMoveY;
+        private bool _pendingMoveIsDash;
         private string _pendingTargetId;
 
         public void Initialize(InputManager inputManager, HUDController hudController)
@@ -221,14 +224,32 @@ namespace FrontLine.Input
 
             if (tileX == unit.TileX && tileY == unit.TileY) return;
 
-            var reachable = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.MoveRange);
-            if (!reachable.Contains((tileX, tileY))) return;
+            var walkZone = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.MoveRange);
+            if (walkZone.Contains((tileX, tileY)))
+            {
+                _pendingMoveIsDash = false;
+            }
+            else if (unit.ActionPoints >= unit.MaxActionPoints)
+            {
+                var dashZone = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.DashRange);
+                if (!dashZone.Contains((tileX, tileY))) return;
+                _pendingMoveIsDash = true;
+            }
+            else
+            {
+                return;
+            }
 
             _pendingMoveX = tileX;
             _pendingMoveY = tileY;
 
+            var path = GridMath.GetPath(_gameState, unit.TileX, unit.TileY, tileX, tileY);
+
             _gridManager.ResetAllTileColors();
             _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
+            if (path != null)
+                foreach (var (px, py) in path)
+                    _gridManager.HighlightTile(px, py, _pathPreviewColor);
             _gridManager.HighlightTile(tileX, tileY, _pendingColor);
 
             _hudController.ShowMoveConfirmation(unit.TileX, unit.TileY, tileX, tileY);
@@ -270,7 +291,8 @@ namespace FrontLine.Input
                             _turnController.CurrentPlayerId,
                             _selectedUnitId,
                             _pendingMoveX,
-                            _pendingMoveY));
+                            _pendingMoveY,
+                            _pendingMoveIsDash));
                     Debug.Log($"[SelectionManager] {moveResult.Message}");
                     EnterUnitSelected();
                     break;
@@ -306,11 +328,22 @@ namespace FrontLine.Input
             if (!_gameState.Units.TryGetValue(_selectedUnitId, out var unit)) return;
 
             _gridManager.ResetAllTileColors();
-            _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
 
-            var reachable = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.MoveRange);
-            foreach (var (x, y) in reachable)
+            var walkZone = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.MoveRange);
+
+            // Show dash zone (amber-yellow) only when unit still has full AP
+            if (unit.ActionPoints >= unit.MaxActionPoints)
+            {
+                var dashZone = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.DashRange);
+                foreach (var (x, y) in dashZone)
+                    if (!walkZone.Contains((x, y)))
+                        _gridManager.HighlightTile(x, y, _dashRangeColor);
+            }
+
+            foreach (var (x, y) in walkZone)
                 _gridManager.HighlightTile(x, y, _moveRangeColor);
+
+            _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
         }
 
         private void HighlightAttackRange()
@@ -341,6 +374,7 @@ namespace FrontLine.Input
             _selectedUnitId = null;
             _pendingMoveX = 0;
             _pendingMoveY = 0;
+            _pendingMoveIsDash = false;
             _pendingTargetId = null;
             _state = SelectionState.Idle;
             _gridManager.ResetAllTileColors();
