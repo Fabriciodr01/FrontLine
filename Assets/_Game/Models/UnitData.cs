@@ -13,6 +13,7 @@ namespace FrontLine.Models
         public int MaxActionPoints { get; private set; }
 
         public int MoveRange { get; private set; }
+        public int DashRange { get; private set; }
         public int AttackRange { get; private set; }
         public int Damage { get; private set; }
 
@@ -30,6 +31,7 @@ namespace FrontLine.Models
             MaxActionPoints = 2;
             ActionPoints = MaxActionPoints;
             MoveRange = 3;
+            DashRange = 5;
             AttackRange = 4;
             Damage = 1;
         }
