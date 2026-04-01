@@ -78,7 +78,7 @@ namespace FrontLine.AI
                 .OrderBy(t => GridMath.GetTileDistance(t.x, t.y, enemy.TileX, enemy.TileY))
                 .First();
 
-            var result = _commandProcessor.Process(new MoveCommand(_aiPlayerId, _unit.UnitId, best.x, best.y));
+            var result = _commandProcessor.Process(new MoveCommand(_aiPlayerId, _unit.UnitId, best.x, best.y, false));
             return result.Success ? NodeStatus.Success : NodeStatus.Failure;
         }
     }

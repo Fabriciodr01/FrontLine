@@ -13,13 +13,16 @@ namespace FrontLine.Commands
         public int TargetY { get; private set; }
         // Populated during Execute — the tile-by-tile path the unit took.
         public List<(int x, int y)> Path { get; private set; }
+        // True when the unit spent all AP to move further (dash). Preserved for future noise/mechanic hooks.
+        public bool IsDash { get; private set; }
 
-        public MoveCommand(string playerId, string unitId, int targetX, int targetY)
+        public MoveCommand(string playerId, string unitId, int targetX, int targetY, bool isDash = false)
         {
             PlayerId = playerId;
             UnitId = unitId;
             TargetX = targetX;
             TargetY = targetY;
+            IsDash = isDash;
         }
 
         public CommandResult Execute(GameState gameState, TurnController turnController)
@@ -35,9 +38,10 @@ namespace FrontLine.Commands
             if (unit.OwnerId != PlayerId)
                 return CommandResult.Fail($"Unit {UnitId} does not belong to {PlayerId}.");
 
-            // Validate action points
-            if (!turnController.HasActionPoints(UnitId))
-                return CommandResult.Fail($"Unit {UnitId} has no action points.");
+            // Validate action points — dash requires full AP, walk requires at least 1
+            int requiredAp = IsDash ? unit.MaxActionPoints : 1;
+            if (unit.ActionPoints < requiredAp)
+                return CommandResult.Fail($"Unit {UnitId} needs {requiredAp} AP for this move but has {unit.ActionPoints}.");
 
             // Validate target tile
             var targetTile = gameState.GetTile(TargetX, TargetY);
@@ -48,9 +52,10 @@ namespace FrontLine.Commands
                 return CommandResult.Fail($"Tile ({TargetX},{TargetY}) is not walkable.");
 
             // Validate move range — BFS ensures the path goes through walkable tiles only
-            var reachable = GridMath.GetReachableTiles(gameState, unit.TileX, unit.TileY, unit.MoveRange);
+            int range = IsDash ? unit.DashRange : unit.MoveRange;
+            var reachable = GridMath.GetReachableTiles(gameState, unit.TileX, unit.TileY, range);
             if (!reachable.Contains((TargetX, TargetY)))
-                return CommandResult.Fail($"Target ({TargetX},{TargetY}) is not reachable within move range {unit.MoveRange}.");
+                return CommandResult.Fail($"Target ({TargetX},{TargetY}) is not reachable within {(IsDash ? "dash" : "move")} range {range}.");
 
             // Compute path before state mutation (unit position still reflects origin)
             Path = GridMath.GetPath(gameState, unit.TileX, unit.TileY, TargetX, TargetY);
@@ -71,8 +76,16 @@ namespace FrontLine.Commands
             targetTile.IsOccupied = true;
             targetTile.OccupyingUnitId = UnitId;
 
-            // Consume action point
-            turnController.ConsumeActionPoint(UnitId);
+            // Consume action points — dash drains all AP, walk drains 1
+            if (IsDash)
+            {
+                while (unit.ActionPoints > 0)
+                    turnController.ConsumeActionPoint(UnitId);
+            }
+            else
+            {
+                turnController.ConsumeActionPoint(UnitId);
+            }
 
             return CommandResult.Ok($"Unit {UnitId} moved to ({TargetX},{TargetY}).");
         }
