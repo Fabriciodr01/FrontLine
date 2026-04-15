@@ -14,11 +14,11 @@ namespace FrontLine.AI
         private readonly IBehaviorNode _bt;
 
         public AIUnitAgent(UnitData unit, GameState gameState, CommandProcessor commandProcessor,
-            LineOfSightService losService, string aiPlayerId)
+            CombatResolver combatResolver, string aiPlayerId)
         {
             Unit = unit;
             _bt = new SelectorNode(
-                new ShootNearestEnemyNode(unit, gameState, commandProcessor, losService, aiPlayerId),
+                new ShootNearestEnemyNode(unit, gameState, commandProcessor, combatResolver, aiPlayerId),
                 new MoveTowardNearestEnemyNode(unit, gameState, commandProcessor, aiPlayerId)
             );
         }

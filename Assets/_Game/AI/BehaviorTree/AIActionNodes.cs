@@ -13,15 +13,15 @@ namespace FrontLine.AI
         private readonly GameState _gameState;
         private readonly CommandProcessor _commandProcessor;
         private readonly string _aiPlayerId;
-        private readonly LineOfSightService _losService;
+        private readonly CombatResolver _combatResolver;
 
         public ShootNearestEnemyNode(UnitData unit, GameState gameState, CommandProcessor commandProcessor,
-            LineOfSightService losService, string aiPlayerId)
+            CombatResolver combatResolver, string aiPlayerId)
         {
             _unit = unit;
             _gameState = gameState;
             _commandProcessor = commandProcessor;
-            _losService = losService;
+            _combatResolver = combatResolver;
             _aiPlayerId = aiPlayerId;
         }
 
@@ -31,8 +31,7 @@ namespace FrontLine.AI
 
             var target = _gameState.Units.Values
                 .Where(u => u.OwnerId != _aiPlayerId)
-                .Where(u => GridMath.GetTileDistance(_unit.TileX, _unit.TileY, u.TileX, u.TileY) <= _unit.AttackRange)
-                .Where(u => _losService.HasLOS(_unit.TileX, _unit.TileY, u.TileX, u.TileY))
+                .Where(u => _combatResolver.EvaluateAttack(new AttackContext(_unit, u)).CanAttack)
                 .OrderBy(u => GridMath.GetTileDistance(_unit.TileX, _unit.TileY, u.TileX, u.TileY))
                 .FirstOrDefault();
 
