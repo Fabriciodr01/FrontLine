@@ -32,7 +32,6 @@ namespace FrontLine.Input
         private CommandProcessor _commandProcessor;
         private GridManager _gridManager;
         private CombatResolver _combatResolver;
-        private LineOfSightService _losService;
         private InputManager _inputManager;
         private HUDController _hudController;
         private Camera _camera;
@@ -55,7 +54,6 @@ namespace FrontLine.Input
             _commandProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
             _gridManager = ServiceLocator.Instance.Get<GridManager>();
             _combatResolver = ServiceLocator.Instance.Get<CombatResolver>();
-            _losService = ServiceLocator.Instance.Get<LineOfSightService>();
             _camera = Camera.main;
             _inputManager = inputManager;
             _hudController = hudController;
@@ -265,20 +263,11 @@ namespace FrontLine.Input
             var target = _gameState.Units[tile.OccupyingUnitId];
             if (target.OwnerId == attacker.OwnerId) return;
 
-            int dist = GridMath.GetTileDistance(
-                attacker.TileX,
-                attacker.TileY,
-                target.TileX,
-                target.TileY);
-
-            if (dist > attacker.AttackRange) return;
-
-            if (!_losService.HasLOS(attacker.TileX, attacker.TileY, target.TileX, target.TileY)) return;
+            var eval = _combatResolver.EvaluateAttack(new AttackContext(attacker, target));
+            if (!eval.CanAttack) return;
 
             _pendingTargetId = target.UnitId;
-
-            int hitChance = _combatResolver.CalculateHitChance(attacker, target);
-            _hudController.ShowShootConfirmation(target.UnitId, hitChance, attacker.Damage);
+            _hudController.ShowShootConfirmation(target.UnitId, eval.HitChance, attacker.Damage);
         }
 
         private void HandlePopupExecute()
@@ -356,15 +345,8 @@ namespace FrontLine.Input
             foreach (var target in _gameState.Units.Values)
             {
                 if (target.OwnerId == unit.OwnerId) continue;
-
-                int dist = GridMath.GetTileDistance(
-                    unit.TileX,
-                    unit.TileY,
-                    target.TileX,
-                    target.TileY);
-
-                if (dist <= unit.AttackRange &&
-                    _losService.HasLOS(unit.TileX, unit.TileY, target.TileX, target.TileY))
+                var eval = _combatResolver.EvaluateAttack(new AttackContext(unit, target));
+                if (eval.CanAttack)
                     _gridManager.HighlightTile(target.TileX, target.TileY, _attackRangeColor);
             }
         }
