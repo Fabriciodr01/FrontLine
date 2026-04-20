@@ -23,14 +23,14 @@ namespace FrontLine.AI
 
         private GameState         _gameState;
         private CommandProcessor  _commandProcessor;
-        private LineOfSightService _losService;
+        private CombatResolver    _combatResolver;
         private Coroutine         _coroutine;
 
         public void Initialize()
         {
             _gameState        = ServiceLocator.Instance.Get<GameState>();
             _commandProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
-            _losService       = ServiceLocator.Instance.Get<LineOfSightService>();
+            _combatResolver   = ServiceLocator.Instance.Get<CombatResolver>();
         }
 
         public void OnTurnStarted(string playerId)
@@ -40,7 +40,7 @@ namespace FrontLine.AI
             // Build agents fresh each turn — dead units are already removed from GameState
             var agents = _gameState.Units.Values
                 .Where(u => u.OwnerId == AiPlayerId)
-                .Select(u => new AIUnitAgent(u, _gameState, _commandProcessor, _losService, AiPlayerId))
+                .Select(u => new AIUnitAgent(u, _gameState, _commandProcessor, _combatResolver, AiPlayerId))
                 .ToList();
 
             _coroutine = StartCoroutine(RunAITurn(agents));
