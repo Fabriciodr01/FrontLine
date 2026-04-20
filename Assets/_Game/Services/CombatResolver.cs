@@ -26,8 +26,8 @@ namespace FrontLine.Services
     public class CombatResolver
     {
         private readonly Random _random;
-
         private readonly GameState _gameState;
+        private readonly LineOfSightService _losService;
 
         // Base hit chance percentage (0-100)
         private const int BaseHitChance = 75;
@@ -38,10 +38,27 @@ namespace FrontLine.Services
         // Minimum hit chance floor — never impossible to hit
         private const int MinHitChance = 15;
 
-        public CombatResolver(GameState gameState, Random random = null)
+        public CombatResolver(GameState gameState, LineOfSightService losService, Random random = null)
         {
-            _gameState = gameState;
-            _random = random ?? new Random();
+            _gameState  = gameState;
+            _losService = losService;
+            _random     = random ?? new Random();
+        }
+
+        public AttackEvaluation EvaluateAttack(AttackContext context)
+        {
+            if (context.Attacker == null) throw new ArgumentNullException("context.Attacker");
+            if (context.Target == null)   throw new ArgumentNullException("context.Target");
+
+            var attacker = context.Attacker;
+            var target   = context.Target;
+
+            int  distance  = GridMath.GetTileDistance(attacker.TileX, attacker.TileY, target.TileX, target.TileY);
+            bool inRange   = distance <= attacker.AttackRange;
+            bool hasLOS    = inRange && _losService.HasLOS(attacker.TileX, attacker.TileY, target.TileX, target.TileY);
+            int  hitChance = (inRange && hasLOS) ? CalculateHitChance(attacker, target) : 0;
+
+            return new AttackEvaluation(inRange, hasLOS, CoverType.None, hitChance, distance);
         }
 
         public CombatResult Resolve(UnitData attacker, UnitData target)

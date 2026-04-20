@@ -45,23 +45,17 @@ namespace FrontLine.Commands
             if (!target.IsAlive)
                 return CommandResult.Fail($"Target {TargetUnitId} is already dead.");
 
-            // Validate attack range
-            int distance = GridMath.GetTileDistance(
-                attacker.TileX,
-                attacker.TileY,
-                target.TileX,
-                target.TileY);
+            // Validate attack range and line of sight
+            var resolver = ServiceLocator.Instance.Get<CombatResolver>();
+            var eval     = resolver.EvaluateAttack(new AttackContext(attacker, target));
 
-            if (distance > attacker.AttackRange)
-                return CommandResult.Fail($"Target out of attack range. Distance:{distance} Range:{attacker.AttackRange}");
+            if (!eval.InRange)
+                return CommandResult.Fail($"Target out of attack range. Distance:{eval.Distance} Range:{attacker.AttackRange}");
 
-            // Validate line of sight
-            var los = ServiceLocator.Instance.Get<LineOfSightService>();
-            if (!los.HasLOS(attacker.TileX, attacker.TileY, target.TileX, target.TileY))
+            if (!eval.HasLOS)
                 return CommandResult.Fail("No line of sight.");
 
             // Execute — apply damage
-            var resolver = ServiceLocator.Instance.Get<CombatResolver>();
             var combatResult = resolver.Resolve(attacker, target);
 
             turnController.ConsumeActionPoint(UnitId);

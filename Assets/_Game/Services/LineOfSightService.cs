@@ -12,30 +12,52 @@ namespace FrontLine.Services
             _gameState = gameState;
         }
 
-        // Returns false if any intermediate tile (start and end excluded) is Blocked.
-        // TODO-POST-ALPHA: asymmetry edge case — use supercover DDA for symmetric LOS
+        // Supercover DDA — visits every cell the line passes through, including both
+        // cells at exact corner crossings. Corner crossing blocks LOS only when both
+        // adjacent cells are Blocked, guaranteeing HasLOS(A→B) == HasLOS(B→A).
+        // Start and end tiles are excluded from blocking checks.
         public bool HasLOS(int x0, int y0, int x1, int y1)
         {
-            int dx = Math.Abs(x1 - x0);
-            int dy = Math.Abs(y1 - y0);
-            int sx = x0 < x1 ? 1 : -1;
-            int sy = y0 < y1 ? 1 : -1;
-            int err = dx - dy;
+            int nx    = Math.Abs(x1 - x0);
+            int ny    = Math.Abs(y1 - y0);
+            int signX = x1 > x0 ? 1 : (x1 < x0 ? -1 : 0);
+            int signY = y1 > y0 ? 1 : (y1 < y0 ? -1 : 0);
 
-            int cx = x0;
-            int cy = y0;
+            if (nx == 0 && ny == 0) return true; // same cell
 
-            while (true)
+            int px = x0;
+            int py = y0;
+
+            for (int ix = 0, iy = 0; ix < nx || iy < ny; )
             {
-                if (cx == x1 && cy == y1) break;
+                int decision = (1 + 2 * ix) * ny - (1 + 2 * iy) * nx;
 
-                int e2 = 2 * err;
-                if (e2 > -dy) { err -= dy; cx += sx; }
-                if (e2 < dx)  { err += dx; cy += sy; }
+                if (decision == 0)
+                {
+                    // Exact corner crossing — check both adjacent cells.
+                    // Block only if BOTH are Blocked (no open passage around the corner).
+                    var tileH = _gameState.GetTile(px + signX, py);
+                    var tileV = _gameState.GetTile(px, py + signY);
+                    bool hBlocked = tileH != null && tileH.Type == TileType.Blocked;
+                    bool vBlocked = tileV != null && tileV.Type == TileType.Blocked;
+                    if (hBlocked && vBlocked) return false;
+                    px += signX; py += signY;
+                    ix++; iy++;
+                }
+                else if (decision < 0)
+                {
+                    px += signX;
+                    ix++;
+                }
+                else
+                {
+                    py += signY;
+                    iy++;
+                }
 
-                if (cx == x1 && cy == y1) break; // skip end tile
+                if (px == x1 && py == y1) break; // skip end tile
 
-                var tile = _gameState.GetTile(cx, cy);
+                var tile = _gameState.GetTile(px, py);
                 if (tile != null && tile.Type == TileType.Blocked)
                     return false;
             }

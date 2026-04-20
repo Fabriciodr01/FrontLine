@@ -47,12 +47,11 @@ namespace FrontLine.Services
             var gameState = new GameState(_gridWidth, _gridHeight);
             var stateMachine = new GameStateMachine();
             _turnController = new TurnController(gameState, stateMachine);
-            var combatResolver = new CombatResolver(gameState);
-            var cmdProcessor = new CommandProcessor(gameState, _turnController);
-
             ConfigureObstacles(gameState);
 
-            var losService = new LineOfSightService(gameState);
+            var losService     = new LineOfSightService(gameState);
+            var combatResolver = new CombatResolver(gameState, losService);
+            var cmdProcessor   = new CommandProcessor(gameState, _turnController);
 
             ServiceLocator.Instance.Register(gameState);
             ServiceLocator.Instance.Register(stateMachine);
