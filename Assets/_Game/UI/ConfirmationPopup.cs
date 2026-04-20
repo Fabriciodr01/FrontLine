@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using FrontLine.Models;
 
 namespace FrontLine.UI
 {
@@ -50,6 +51,15 @@ namespace FrontLine.UI
             _titleText.text = "ATIRAR";
             _detailText.text = $"Alvo: {targetId}  |  Dano: {damage}";
             _executeLabel.text = $"EXECUTAR ({hitChance}%)";
+            _root.SetActive(true);
+        }
+
+        public void ShowThrow(int targetX, int targetY, GrenadeType type)
+        {
+            string typeName = type == GrenadeType.Frag ? "FRAGMENTAÇÃO" : "FUMAÇA";
+            _titleText.text = "LANÇAR GRANADA";
+            _detailText.text = $"{typeName}  |  Alvo: ({targetX},{targetY})";
+            _executeLabel.text = "EXECUTAR";
             _root.SetActive(true);
         }
 

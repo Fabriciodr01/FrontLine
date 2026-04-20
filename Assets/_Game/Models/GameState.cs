@@ -19,6 +19,7 @@ namespace FrontLine.Models
 
         public Dictionary<string, UnitData> Units { get; private set; }
         public TileData[,] Grid { get; private set; }
+        public Dictionary<(int, int), GrenadeBox> GrenadeBoxes { get; private set; }
 
         public int GridWidth { get; private set; }
         public int GridHeight { get; private set; }
@@ -32,6 +33,7 @@ namespace FrontLine.Models
             WinnerPlayerId = null;
             Units = new Dictionary<string, UnitData>();
             Grid = new TileData[gridWidth, gridHeight];
+            GrenadeBoxes = new Dictionary<(int, int), GrenadeBox>();
 
             InitializeGrid();
         }
@@ -76,5 +78,11 @@ namespace FrontLine.Models
             }
             Units.Remove(unitId);
         }
+
+        public void AddGrenadeBox(GrenadeBox box)
+            => GrenadeBoxes[(box.TileX, box.TileY)] = box;
+
+        public void RemoveGrenadeBox(int x, int y)
+            => GrenadeBoxes.Remove((x, y));
     }
 }

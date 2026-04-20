@@ -16,6 +16,8 @@ namespace FrontLine.Models
         public int DashRange { get; private set; }
         public int AttackRange { get; private set; }
         public int Damage { get; private set; }
+        public int FragGrenades { get; set; }
+        public int SmokeGrenades { get; set; }
 
         public bool IsAlive => Health.IsAlive;
 

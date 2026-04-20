@@ -22,6 +22,8 @@ namespace FrontLine.Services
         [SerializeField] private CameraController _cameraController;
         [SerializeField] private HUDController _hudController;
         [SerializeField] private AIInputHandler _aiInputHandler;
+        [SerializeField] private SmokeViewController _smokeViewController;
+        [SerializeField] private GrenadeBoxView[] _grenadeBoxViews;
 
         private TurnController _turnController;
 
@@ -53,6 +55,8 @@ namespace FrontLine.Services
             var combatResolver = new CombatResolver(gameState, losService);
             var cmdProcessor   = new CommandProcessor(gameState, _turnController);
 
+            ConfigureCollectables(gameState);
+
             ServiceLocator.Instance.Register(gameState);
             ServiceLocator.Instance.Register(stateMachine);
             ServiceLocator.Instance.Register(_turnController);
@@ -81,7 +85,32 @@ namespace FrontLine.Services
 
             _unitSpawner.Initialize();
 
+            var cmdProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
+            if (_smokeViewController != null)
+                _smokeViewController.Initialize(
+                    ServiceLocator.Instance.Get<GameState>(),
+                    _gridManager,
+                    ServiceLocator.Instance.Get<TurnController>(),
+                    cmdProcessor);
+
+            if (_grenadeBoxViews != null)
+                foreach (var view in _grenadeBoxViews)
+                    if (view != null) view.Initialize(cmdProcessor);
+
             Debug.Log("[GameBootstrapper] Scene initialized.");
+        }
+
+        private void ConfigureCollectables(GameState gameState)
+        {
+            // Symmetrical placement near the chokepoints — contested by both players.
+            // (5,4)  frag  — P1-side of left chokepoint
+            // (10,9) frag  — P2-side of right chokepoint
+            // (5,9)  smoke — P2-side of left chokepoint
+            // (10,4) smoke — P1-side of right chokepoint
+            gameState.AddGrenadeBox(new GrenadeBox(GrenadeType.Frag,  5,  4));
+            gameState.AddGrenadeBox(new GrenadeBox(GrenadeType.Frag,  10, 9));
+            gameState.AddGrenadeBox(new GrenadeBox(GrenadeType.Smoke, 5,  9));
+            gameState.AddGrenadeBox(new GrenadeBox(GrenadeType.Smoke, 10, 4));
         }
 
         private void SetBlocked(GameState gameState, int x, int y)

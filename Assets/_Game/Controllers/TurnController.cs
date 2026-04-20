@@ -85,8 +85,16 @@ namespace FrontLine.Controllers
                 _gameState.TurnNumber++;
             }
 
+            TickSmoke();
             ResetActionPoints(CurrentPlayerId);
             OnTurnStarted?.Invoke(CurrentPlayerId);
+        }
+
+        private void TickSmoke()
+        {
+            for (int x = 0; x < _gameState.GridWidth; x++)
+                for (int y = 0; y < _gameState.GridHeight; y++)
+                    _gameState.Grid[x, y].TickSmoke();
         }
 
         private void ResetActionPoints(string playerId)

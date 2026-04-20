@@ -38,8 +38,8 @@ namespace FrontLine.Services
                     // Block only if BOTH are Blocked (no open passage around the corner).
                     var tileH = _gameState.GetTile(px + signX, py);
                     var tileV = _gameState.GetTile(px, py + signY);
-                    bool hBlocked = tileH != null && tileH.Type == TileType.Blocked;
-                    bool vBlocked = tileV != null && tileV.Type == TileType.Blocked;
+                    bool hBlocked = tileH != null && (tileH.Type == TileType.Blocked || tileH.HasSmoke);
+                    bool vBlocked = tileV != null && (tileV.Type == TileType.Blocked || tileV.HasSmoke);
                     if (hBlocked && vBlocked) return false;
                     px += signX; py += signY;
                     ix++; iy++;
@@ -58,7 +58,7 @@ namespace FrontLine.Services
                 if (px == x1 && py == y1) break; // skip end tile
 
                 var tile = _gameState.GetTile(px, py);
-                if (tile != null && tile.Type == TileType.Blocked)
+                if (tile != null && (tile.Type == TileType.Blocked || tile.HasSmoke))
                     return false;
             }
 
