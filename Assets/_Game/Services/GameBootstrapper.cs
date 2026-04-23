@@ -14,6 +14,9 @@ namespace FrontLine.Services
         [SerializeField] private int _gridWidth = 16;
         [SerializeField] private int _gridHeight = 14;
 
+        [Header("Map Data")]
+        [SerializeField] private MapData _mapData;
+
         [Header("Scene References")]
         [SerializeField] private GridManager _gridManager;
         [SerializeField] private UnitSpawner _unitSpawner;
@@ -47,7 +50,7 @@ namespace FrontLine.Services
             var gameState = new GameState(_gridWidth, _gridHeight);
             var stateMachine = new GameStateMachine();
             _turnController = new TurnController(gameState, stateMachine);
-            ConfigureObstacles(gameState);
+            new MapLoader(gameState, _mapData).Load();
 
             var losService     = new LineOfSightService(gameState);
             var combatResolver = new CombatResolver(gameState, losService);
@@ -84,39 +87,6 @@ namespace FrontLine.Services
             Debug.Log("[GameBootstrapper] Scene initialized.");
         }
 
-        private void SetBlocked(GameState gameState, int x, int y)
-        {
-            var tile = gameState.GetTile(x, y);
-            if (tile == null)
-            {
-                Debug.LogWarning($"[GameBootstrapper] Obstacle at ({x},{y}) is out of grid bounds ({gameState.GridWidth}x{gameState.GridHeight}) — skipped.");
-                return;
-            }
-            tile.Type = TileType.Blocked;
-        }
-
-        private void ConfigureObstacles(GameState gameState)
-        {
-            // Central wall at y=6 and y=7, x=1..14, with chokepoint gaps at x=5 and x=10
-            for (int x = 1; x <= 14; x++)
-            {
-                if (x == 5 || x == 10) continue;
-                SetBlocked(gameState, x, 6);
-                SetBlocked(gameState, x, 7);
-            }
-
-            // P1-side cover
-            SetBlocked(gameState, 2,  3);
-            SetBlocked(gameState, 3,  3);
-            SetBlocked(gameState, 12, 3);
-            SetBlocked(gameState, 13, 3);
-
-            // P2-side cover
-            SetBlocked(gameState, 2,  10);
-            SetBlocked(gameState, 3,  10);
-            SetBlocked(gameState, 12, 10);
-            SetBlocked(gameState, 13, 10);
-        }
     }
 }
 
