@@ -68,7 +68,7 @@
         "*.slnx": "*.csproj"
     },
     "dotnet.defaultSolution": "FrontLine.slnx",
-
+    "terminal.integrated.fontSize": 18,
     //Unity Editor
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "ms-dotnettools.csharp",

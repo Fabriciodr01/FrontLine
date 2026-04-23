@@ -9,10 +9,10 @@ namespace FrontLine.Views
         [Header("Tile Settings")]
         [SerializeField] private GameObject _tilePrefab;
         [SerializeField] private float _tileHeight = 0.1f;
-        [SerializeField] private float _tileSize = 1f;
-        [SerializeField] private float _tileSpacing = 0.05f;
+        public static float TileSize = 1f;
+        [SerializeField] private float _tileSpacing = 0.00f;
 
-        public float TileStep => _tileSize + _tileSpacing;
+        public float TileStep => TileSize + _tileSpacing;
         private static readonly Color ObstacleColor = new Color(0.25f, 0.2f, 0.18f, 1f);
 
         private GameState _gameState;
@@ -52,20 +52,20 @@ namespace FrontLine.Views
 
         private void SpawnTile(int x, int y)
         {
-            float step = _tileSize + _tileSpacing;
+            float step = TileSize + _tileSpacing;
             Vector3 worldPos = new Vector3(x * step, 0f, y * step);
 
             var tileObj = Instantiate(_tilePrefab, worldPos, Quaternion.identity, transform);
 
             tileObj.name = $"Tile_{x}_{y}";
-            tileObj.transform.localScale = new Vector3(_tileSize, _tileHeight, _tileSize);
+            tileObj.transform.localScale = new Vector3(TileSize, _tileHeight, TileSize);
 
             _tileObjects[x, y] = tileObj;
         }
 
         private void CenterCameraOnGrid()
         {
-            float step = _tileSize + _tileSpacing;
+            float step = TileSize + _tileSpacing;
             float centerX = (_gameState.GridWidth - 1) * step / 2f;
             float centerZ = (_gameState.GridHeight - 1) * step / 2f;
 
@@ -79,9 +79,9 @@ namespace FrontLine.Views
 
         public Vector3 GetWorldPosition(int x, int y)
         {
-            float step = _tileSize + _tileSpacing;
+            float step = TileSize + _tileSpacing;
             var tile = _gameState.GetTile(x, y);
-            float height = tile != null ? tile.Elevation * _tileSize : 0f;
+            float height = tile != null ? tile.Elevation * TileSize : 0f;
             return new Vector3(x * step, height, y * step);
         }
 
