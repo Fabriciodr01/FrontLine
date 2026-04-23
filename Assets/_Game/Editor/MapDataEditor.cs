@@ -17,7 +17,7 @@ namespace FrontLine.Editor
             var mapData = (MapData)target;
 
             EditorGUILayout.HelpBox(
-                "Bake to scan all GridObject components in the open scene (including inactive) and write their positions into this asset.",
+                "Bake to scan all GridObject components in the open scene (including inactive) and write their positions into this asset. Multi-tile objects are covered cell-by-cell based on renderer bounds.",
                 MessageType.Info);
 
             if (GUILayout.Button("Bake Map From Scene", GUILayout.Height(32)))
@@ -28,8 +28,7 @@ namespace FrontLine.Editor
 
         private static void BakeFromScene(MapData mapData)
         {
-            // true = include inactive GameObjects so disabled props aren't silently skipped
-            var gridObjects = Object.FindObjectsOfType<GridObject>(true);
+            var gridObjects = Object.FindObjectsByType<GridObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             if (gridObjects.Length == 0)
             {
@@ -37,21 +36,20 @@ namespace FrontLine.Editor
                 return;
             }
 
-            var entries = new List<GridObjectEntry>(gridObjects.Length);
+            // Dictionary keyed by (x,y) so overlapping objects produce one entry — last processed wins.
+            var entryMap = new Dictionary<(int, int), GridObjectEntry>();
+
             foreach (var go in gridObjects)
             {
-                Vector3 pos = go.transform.position;
-                int gx = Mathf.RoundToInt(pos.x / go.CellSize);
-                int gy = Mathf.RoundToInt(pos.z / go.CellSize);
-
-                entries.Add(new GridObjectEntry { X = gx, Y = gy, ObjectType = go.ObjectType });
+                foreach (var (gx, gy) in go.GetCoveredCells())
+                    entryMap[(gx, gy)] = new GridObjectEntry { X = gx, Y = gy, ObjectType = go.ObjectType };
             }
 
-            mapData.SetEntries(entries);
+            mapData.SetEntries(new List<GridObjectEntry>(entryMap.Values));
             EditorUtility.SetDirty(mapData);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"[MapDataEditor] Baked {entries.Count} entries into {mapData.name}.");
+            Debug.Log($"[MapDataEditor] Baked {entryMap.Count} tile entries from {gridObjects.Length} GridObjects into {mapData.name}.");
         }
     }
 }

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: BattleMapData
   m_EditorClassIdentifier: Assembly-CSharp::FrontLine.Models.MapData
   _entries:
-  - X: 1
-    Y: 3
+  - X: 3
+    Y: 2
     ObjectType: 0
