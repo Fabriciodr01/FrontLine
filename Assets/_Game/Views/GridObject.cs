@@ -24,10 +24,17 @@ namespace FrontLine.Views
 
         private void SnapToGrid()
         {
+            var r = GetComponentInChildren<Renderer>();
             Vector3 pos = transform.position;
-            GridX = Mathf.RoundToInt(pos.x / _cellSize);
-            GridY = Mathf.RoundToInt(pos.z / _cellSize);
-            transform.position = new Vector3(GridX * _cellSize, pos.y, GridY * _cellSize);
+            float sizeX = r != null ? r.bounds.size.x : _cellSize;
+            float sizeZ = r != null ? r.bounds.size.z : _cellSize;
+
+            float snapX = ComputeSnap(pos.x, sizeX);
+            float snapZ = ComputeSnap(pos.z, sizeZ);
+
+            GridX = Mathf.FloorToInt(snapX / _cellSize);
+            GridY = Mathf.FloorToInt(snapZ / _cellSize);
+            transform.position = new Vector3(snapX, pos.y, snapZ);
         }
 
         public List<(int x, int y)> GetCoveredCells()
@@ -60,12 +67,25 @@ namespace FrontLine.Views
         }
 #endif
 
+        private float ComputeSnap(float worldPos, float boundsSize)
+        {
+            int tileCount = Mathf.RoundToInt(boundsSize / _cellSize);
+            if (tileCount % 2 == 0)
+                return (Mathf.Round(worldPos / _cellSize - 0.5f) + 0.5f) * _cellSize;
+            return Mathf.RoundToInt(worldPos / _cellSize) * _cellSize;
+        }
+
         private void OnDrawGizmos()
         {
+            var r = GetComponentInChildren<Renderer>();
             Vector3 pos = transform.position;
-            int gx = Mathf.RoundToInt(pos.x / _cellSize);
-            int gy = Mathf.RoundToInt(pos.z / _cellSize);
-            Vector3 snappedCenter = new Vector3(gx * _cellSize, pos.y, gy * _cellSize);
+            float sizeX = r != null ? r.bounds.size.x : _cellSize;
+            float sizeZ = r != null ? r.bounds.size.z : _cellSize;
+            float snapX = ComputeSnap(pos.x, sizeX);
+            float snapZ = ComputeSnap(pos.z, sizeZ);
+            int gx = Mathf.FloorToInt(snapX / _cellSize);
+            int gy = Mathf.FloorToInt(snapZ / _cellSize);
+            Vector3 snappedCenter = new Vector3(snapX, pos.y, snapZ);
 
             Gizmos.color = _objectType switch
             {
@@ -76,9 +96,8 @@ namespace FrontLine.Views
                 _ => Color.white
             };
 
-            var r = GetComponentInChildren<Renderer>();
             if (r != null)
-                Gizmos.DrawWireCube(r.bounds.center, r.bounds.size);
+                Gizmos.DrawWireCube(snappedCenter, r.bounds.size);
             else
                 Gizmos.DrawWireCube(snappedCenter, new Vector3(_cellSize, 1f, _cellSize));
 
