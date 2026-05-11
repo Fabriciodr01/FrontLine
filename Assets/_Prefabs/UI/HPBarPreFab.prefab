@@ -85,7 +85,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &5017397342590258911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,8 +115,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d129ca7e7034a14eace6fb8d7347380, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FrontLine.UI.WorldSpaceHPBar
-  _slider: {fileID: 0}
-  _fillImage: {fileID: 0}
+  _slider: {fileID: 771783519217886867}
+  _fillImage: {fileID: 1712390736012930493}
   _canvas: {fileID: 4700566922587832415}
 --- !u!1001 &7966497247150857131
 PrefabInstance:
@@ -126,6 +126,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7553180374051069542}
     m_Modifications:
+    - target: {fileID: 832374039783235316, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
+      propertyPath: m_Name
+      value: HPBG
+      objectReference: {fileID: 0}
     - target: {fileID: 1789525330987642278, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -170,9 +174,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: HealthBarStandAlonePreFab
       objectReference: {fileID: 0}
+    - target: {fileID: 6286116685436545809, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
+      propertyPath: m_Name
+      value: HPFillContainer
+      objectReference: {fileID: 0}
     - target: {fileID: 6904635760298030665, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
       propertyPath: m_PresetInfoIsWorld
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7405999388614160411, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
+      propertyPath: m_Name
+      value: HPSlider
       objectReference: {fileID: 0}
     - target: {fileID: 9115293808350509079, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
       propertyPath: m_Pivot.x
@@ -259,8 +271,30 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
+--- !u!114 &771783519217886867 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7222439047580777784, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
+  m_PrefabInstance: {fileID: 7966497247150857131}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
 --- !u!224 &1157047309356327868 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9115293808350509079, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
   m_PrefabInstance: {fileID: 7966497247150857131}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1712390736012930493 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8740657041669207574, guid: c78f1c1603a6bcc41a337d291e85bdb0, type: 3}
+  m_PrefabInstance: {fileID: 7966497247150857131}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
