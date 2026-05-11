@@ -1577,6 +1577,7 @@ MonoBehaviour:
   _editorGridWidth: 16
   _editorGridHeight: 14
   _highlightPoolSize: 48
+  _pathLineWidth: 0.08
   _lineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!1 &1510539726
 GameObject:
