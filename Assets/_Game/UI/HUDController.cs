@@ -247,9 +247,9 @@ namespace FrontLine.UI
                 card.Refresh(unit);
         }
 
-        private void HandleGrenadeCollected(string unitId, GrenadeType type)
+        private void HandleGrenadeCollected(string unitId, GrenadeBox box)
         {
-            string typeName = type == GrenadeType.Frag ? "FRAGMENTAÇÃO" : "FUMAÇA";
+            string typeName = box.GrenadeType == GrenadeType.Frag ? "FRAGMENTAÇÃO" : "FUMAÇA";
             ShowFeedback($"GRANADA DE {typeName} COLETADA!", 2f);
 
             // Refresh action bar so grenade buttons become active immediately

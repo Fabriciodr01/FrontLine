@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FrontLine.Models;
+using FrontLine.Services;
 
 namespace FrontLine.Controllers
 {
@@ -15,6 +17,11 @@ namespace FrontLine.Controllers
         public event Action<string> OnTurnStarted;
         public event Action<string> OnTurnEnded;
         public event Action<string> OnGameOver;
+        public event Action<UnitData> OnUnitDamaged;
+        public event Action<string> OnUnitKilled;
+
+        private const int FragRadius = 1;
+        private const int FragDamage = 2;
 
         public TurnController(GameState gameState, GameStateMachine stateMachine)
         {
@@ -85,9 +92,53 @@ namespace FrontLine.Controllers
                 _gameState.TurnNumber++;
             }
 
+            TickPendingFragGrenades();
             TickSmoke();
             ResetActionPoints(CurrentPlayerId);
             OnTurnStarted?.Invoke(CurrentPlayerId);
+        }
+
+        private void TickPendingFragGrenades()
+        {
+            if (_gameState.PendingFragGrenades.Count == 0) return;
+
+            var exploding = new List<PendingFragGrenade>();
+            foreach (var grenade in _gameState.PendingFragGrenades)
+            {
+                grenade.TurnsRemaining--;
+                if (grenade.TurnsRemaining <= 0)
+                    exploding.Add(grenade);
+            }
+
+            foreach (var grenade in exploding)
+            {
+                ResolveFragExplosion(grenade);
+                _gameState.PendingFragGrenades.Remove(grenade);
+            }
+        }
+
+        private void ResolveFragExplosion(PendingFragGrenade grenade)
+        {
+            var targets = new List<UnitData>();
+            foreach (var unit in _gameState.Units.Values)
+            {
+                if (GridMath.GetTileDistance(unit.TileX, unit.TileY, grenade.TargetX, grenade.TargetY) <= FragRadius)
+                    targets.Add(unit);
+            }
+
+            foreach (var target in targets)
+            {
+                target.Health.TakeDamage(FragDamage);
+                if (!target.IsAlive)
+                {
+                    _gameState.RemoveUnit(target.UnitId);
+                    OnUnitKilled?.Invoke(target.UnitId);
+                }
+                else
+                {
+                    OnUnitDamaged?.Invoke(target);
+                }
+            }
         }
 
         private void TickSmoke()

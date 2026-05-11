@@ -19,7 +19,7 @@ namespace FrontLine.Commands
 
         private const int ThrowRange   = 4;
         private const int FragRadius   = 1;
-        private const int FragDamage   = 2;
+        private const int FragDelayTurns = 1;
         private const int SmokeRadius  = 1;
         private const int SmokeDuration = 2;
 
@@ -76,28 +76,7 @@ namespace FrontLine.Commands
         private void ExecuteFrag(GameState gameState, UnitData attacker)
         {
             attacker.FragGrenades--;
-
-            // Collect targets first to avoid mutating the collection during iteration
-            var targets = new List<UnitData>();
-            foreach (var unit in gameState.Units.Values)
-            {
-                if (GridMath.GetTileDistance(unit.TileX, unit.TileY, TargetX, TargetY) <= FragRadius)
-                    targets.Add(unit);
-            }
-
-            foreach (var target in targets)
-            {
-                target.Health.TakeDamage(FragDamage);
-                if (!target.IsAlive)
-                {
-                    KilledUnitIds.Add(target.UnitId);
-                    gameState.RemoveUnit(target.UnitId);
-                }
-                else
-                {
-                    DamagedUnitIds.Add(target.UnitId);
-                }
-            }
+            gameState.PendingFragGrenades.Add(new PendingFragGrenade(TargetX, TargetY, FragDelayTurns));
         }
 
         private void ExecuteSmoke(GameState gameState, UnitData attacker)

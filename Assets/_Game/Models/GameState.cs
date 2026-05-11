@@ -20,6 +20,7 @@ namespace FrontLine.Models
         public Dictionary<string, UnitData> Units { get; private set; }
         public TileData[,] Grid { get; private set; }
         public Dictionary<(int, int), GrenadeBox> GrenadeBoxes { get; private set; }
+        public List<PendingFragGrenade> PendingFragGrenades { get; private set; }
 
         public int GridWidth { get; private set; }
         public int GridHeight { get; private set; }
@@ -34,6 +35,7 @@ namespace FrontLine.Models
             Units = new Dictionary<string, UnitData>();
             Grid = new TileData[gridWidth, gridHeight];
             GrenadeBoxes = new Dictionary<(int, int), GrenadeBox>();
+            PendingFragGrenades = new List<PendingFragGrenade>();
 
             InitializeGrid();
         }
@@ -84,5 +86,19 @@ namespace FrontLine.Models
 
         public void RemoveGrenadeBox(int x, int y)
             => GrenadeBoxes.Remove((x, y));
+    }
+
+    public class PendingFragGrenade
+    {
+        public int TargetX { get; private set; }
+        public int TargetY { get; private set; }
+        public int TurnsRemaining { get; set; }
+
+        public PendingFragGrenade(int targetX, int targetY, int turnsRemaining)
+        {
+            TargetX = targetX;
+            TargetY = targetY;
+            TurnsRemaining = turnsRemaining;
+        }
     }
 }

@@ -230,6 +230,7 @@ namespace FrontLine.Input
             ClearActionSelectionVisuals();
             _hudController.OnUnitSelected(_selectedUnitId);
 
+            _gridManager.HideMovePath();
             _gridManager.ResetAllTileColors();
             _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
         }
@@ -261,12 +262,13 @@ namespace FrontLine.Input
 
             var path = GridMath.GetPath(_gameState, unit.TileX, unit.TileY, tileX, tileY);
 
+            Color lineColor = _pendingMoveIsDash ? _dashRangeColor : _pathPreviewColor;
+            Color destColor = _pendingMoveIsDash ? _dashRangeColor : _pendingColor;
+
             _gridManager.ResetAllTileColors();
             _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
-            if (path != null)
-                foreach (var (px, py) in path)
-                    _gridManager.HighlightTile(px, py, _pathPreviewColor);
-            _gridManager.HighlightTile(tileX, tileY, _pendingColor);
+            _gridManager.ShowMovePath(path, unit.TileX, unit.TileY, lineColor);
+            _gridManager.HighlightTile(tileX, tileY, destColor);
 
             _hudController.ShowMoveConfirmation(unit.TileX, unit.TileY, tileX, tileY);
         }
@@ -381,6 +383,7 @@ namespace FrontLine.Input
         {
             if (!_gameState.Units.TryGetValue(_selectedUnitId, out var unit)) return;
 
+            _gridManager.HideMovePath();
             _gridManager.ResetAllTileColors();
 
             var walkZone = GridMath.GetReachableTiles(_gameState, unit.TileX, unit.TileY, unit.MoveRange);
@@ -404,6 +407,7 @@ namespace FrontLine.Input
         {
             if (!_gameState.Units.TryGetValue(_selectedUnitId, out var unit)) return;
 
+            _gridManager.HideMovePath();
             _gridManager.ResetAllTileColors();
             _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
 
@@ -424,6 +428,7 @@ namespace FrontLine.Input
             _pendingMoveIsDash = false;
             _pendingTargetId = null;
             _state = SelectionState.Idle;
+            _gridManager.HideMovePath();
             _gridManager.ResetAllTileColors();
             _hudController.OnSelectionCleared();
         }

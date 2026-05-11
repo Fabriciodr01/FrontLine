@@ -1,27 +1,26 @@
 using UnityEngine;
 using FrontLine.Models;
 using FrontLine.Controllers;
-using FrontLine.Services;
 
 namespace FrontLine.Views
 {
-    /// <summary>
-    /// Attach to a scene GameObject representing a grenade box.
-    /// Configure TileX, TileY, and GrenadeType in the Inspector.
-    /// The view destroys itself when the unit collects this box.
-    /// </summary>
     public class GrenadeBoxView : MonoBehaviour
     {
-        [Header("Collectable Config")]
+        [Header("Fallback Authoring")]
         [SerializeField] private int _tileX;
         [SerializeField] private int _tileY;
         [SerializeField] private GrenadeType _grenadeType;
 
         private CommandProcessor _commandProcessor;
+        private GridObject _gridObject;
+        private int _bakedTileX;
+        private int _bakedTileY;
+        private GrenadeType _bakedGrenadeType;
 
         public void Initialize(CommandProcessor commandProcessor)
         {
             _commandProcessor = commandProcessor;
+            CacheBakedIdentity();
             _commandProcessor.OnGrenadeCollected += HandleGrenadeCollected;
         }
 
@@ -31,14 +30,46 @@ namespace FrontLine.Views
                 _commandProcessor.OnGrenadeCollected -= HandleGrenadeCollected;
         }
 
-        private void HandleGrenadeCollected(string unitId, GrenadeType type)
+        public bool TryGetBakedEntry(out GridObjectEntry entry)
         {
-            if (type != _grenadeType) return;
+            CacheBakedIdentity();
+            entry = new GridObjectEntry
+            {
+                X = _bakedTileX,
+                Y = _bakedTileY,
+                ObjectType = _bakedGrenadeType == GrenadeType.Frag
+                    ? GridObjectType.FragGrenadeBox
+                    : GridObjectType.SmokeGrenadeBox
+            };
+            return true;
+        }
 
-            // Check if this box was the one collected (it was already removed from GameState)
-            var gameState = ServiceLocator.Instance.Get<GameState>();
-            if (!gameState.GrenadeBoxes.ContainsKey((_tileX, _tileY)))
-                Destroy(gameObject);
+        private void CacheBakedIdentity()
+        {
+            _gridObject = GetComponent<GridObject>();
+            if (_gridObject != null &&
+                (_gridObject.ObjectType == GridObjectType.FragGrenadeBox ||
+                 _gridObject.ObjectType == GridObjectType.SmokeGrenadeBox))
+            {
+                var (x, y) = _gridObject.GetAnchorCell();
+                _bakedTileX = x;
+                _bakedTileY = y;
+                _bakedGrenadeType = _gridObject.ObjectType == GridObjectType.SmokeGrenadeBox
+                    ? GrenadeType.Smoke
+                    : GrenadeType.Frag;
+                return;
+            }
+
+            _bakedTileX = _tileX;
+            _bakedTileY = _tileY;
+            _bakedGrenadeType = _grenadeType;
+        }
+
+        private void HandleGrenadeCollected(string unitId, GrenadeBox box)
+        {
+            if (box.TileX != _bakedTileX || box.TileY != _bakedTileY) return;
+            if (box.GrenadeType != _bakedGrenadeType) return;
+            Destroy(gameObject);
         }
     }
 }

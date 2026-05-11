@@ -14,7 +14,7 @@ namespace FrontLine.Controllers
         public event Action<string> OnUnitKilled;
         public event Action<string> OnTurnEnded;
         public event Action<string> OnGameOver;
-        public event Action<string, GrenadeType> OnGrenadeCollected;
+        public event Action<string, GrenadeBox> OnGrenadeCollected;
 
         public CommandProcessor(GameState gameState, TurnController turnController)
         {
@@ -24,6 +24,8 @@ namespace FrontLine.Controllers
             // Forward TurnController events through CommandProcessor
             _turnController.OnTurnEnded += playerId => OnTurnEnded?.Invoke(playerId);
             _turnController.OnGameOver += winnerId => OnGameOver?.Invoke(winnerId);
+            _turnController.OnUnitDamaged += unit => OnUnitDamaged?.Invoke(unit);
+            _turnController.OnUnitKilled += unitId => OnUnitKilled?.Invoke(unitId);
         }
 
         public CommandResult Process(ICommand command)
@@ -100,7 +102,7 @@ namespace FrontLine.Controllers
                 unit.SmokeGrenades++;
 
             _gameState.RemoveGrenadeBox(move.TargetX, move.TargetY);
-            OnGrenadeCollected?.Invoke(move.UnitId, box.GrenadeType);
+            OnGrenadeCollected?.Invoke(move.UnitId, box);
         }
 
         private void HandleThrowSideEffects(ThrowGrenadeCommand throwCmd)

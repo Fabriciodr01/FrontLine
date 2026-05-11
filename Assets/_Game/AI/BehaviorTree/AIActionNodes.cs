@@ -73,8 +73,11 @@ namespace FrontLine.AI
             var reachable = GridMath.GetReachableTiles(_gameState, _unit.TileX, _unit.TileY, _unit.MoveRange);
             if (reachable.Count == 0) return NodeStatus.Failure;
 
+            /* `Then-by` is a workaround to break distance ties resulting in ping-pong movement */
             var best = reachable
                 .OrderBy(t => GridMath.GetTileDistance(t.x, t.y, enemy.TileX, enemy.TileY))
+                .ThenBy(t => t.x)
+                .ThenBy(t => t.y)
                 .First();
 
             var result = _commandProcessor.Process(new MoveCommand(_aiPlayerId, _unit.UnitId, best.x, best.y, false));
