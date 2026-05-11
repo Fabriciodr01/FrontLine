@@ -33,7 +33,6 @@ Deliver a playable mobile alpha that demonstrates solid software design patterns
 - Align gameplay rules between selection, commands, and combat resolution
 - Fix initialization order to match the intended architecture
 - Validate turn flow, AP consumption, kill flow, and end-game transitions
-- Validate mobile input and camera behavior
 
 Acceptance:
 - A full match can be played without softlocks or rule mismatches
