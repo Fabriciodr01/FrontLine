@@ -37,7 +37,7 @@ namespace FrontLine.Models
         {
             if (!HasSmoke) return;
             SmokeTurnsRemaining--;
-            if (SmokeTurnsRemaining <= 0)
+            if (SmokeTurnsRemaining < 0) //smoke thicks at thrown turn
                 HasSmoke = false;
         }
 

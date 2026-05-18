@@ -73,9 +73,9 @@ namespace FrontLine.Views
                     if (!tile.HasSmoke) continue;
 
                     var worldPos = _gridManager.GetWorldPosition(x, y);
-                    worldPos.y += 0.05f; // slight lift above ground
+                    worldPos.y += 0.5f; // lift smoke cube origin above ground
 
-                    var overlay = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                    var overlay = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     overlay.name = $"Smoke_{x}_{y}";
                     overlay.transform.position = worldPos;
                     overlay.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
@@ -87,7 +87,7 @@ namespace FrontLine.Views
                     var rend = overlay.GetComponent<Renderer>();
                     if (rend != null)
                     {
-                        rend.material = new Material(Shader.Find("Standard"));
+                        rend.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
                         rend.material.color = _smokeColor;
                         rend.material.SetFloat("_Mode", 3f); // Transparent mode
                         rend.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);

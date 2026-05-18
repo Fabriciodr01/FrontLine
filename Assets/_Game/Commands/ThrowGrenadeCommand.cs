@@ -17,11 +17,11 @@ namespace FrontLine.Commands
         public List<string> DamagedUnitIds { get; private set; } = new List<string>();
         public List<string> KilledUnitIds { get; private set; } = new List<string>();
 
-        private const int ThrowRange   = 4;
-        private const int FragRadius   = 1;
+        private const int ThrowRange = 4;
+        private const int FragRadius = 1;
         private const int FragDelayTurns = 1;
-        private const int SmokeRadius  = 1;
-        private const int SmokeDuration = 2;
+        private const int SmokeRadius = 1;
+        private const int SmokeDuration = 5;
 
         public ThrowGrenadeCommand(string playerId, string unitId, GrenadeType grenadeType, int targetX, int targetY)
         {

@@ -13,29 +13,17 @@ MonoBehaviour:
   m_Name: BattleMapData
   m_EditorClassIdentifier: Assembly-CSharp::FrontLine.Models.MapData
   _entries:
-  - X: 3
-    Y: 2
-    ObjectType: 5
+  - X: 7
+    Y: 3
+    ObjectType: 2
+  - X: 8
+    Y: 3
+    ObjectType: 2
   - X: 14
     Y: 6
     ObjectType: 0
   - X: 15
     Y: 6
-    ObjectType: 0
-  - X: 2
-    Y: 3
-    ObjectType: 1
-  - X: 3
-    Y: 3
-    ObjectType: 1
-  - X: 7
-    Y: 2
-    ObjectType: 4
-  - X: 12
-    Y: 9
-    ObjectType: 0
-  - X: 13
-    Y: 9
     ObjectType: 0
   - X: 0
     Y: 6
@@ -50,14 +38,20 @@ MonoBehaviour:
     Y: 6
     ObjectType: 0
   - X: 7
-    Y: 3
-    ObjectType: 2
-  - X: 8
-    Y: 3
-    ObjectType: 2
+    Y: 2
+    ObjectType: 4
   - X: 7
     Y: 9
     ObjectType: 0
+  - X: 3
+    Y: 2
+    ObjectType: 5
+  - X: 2
+    Y: 3
+    ObjectType: 1
+  - X: 3
+    Y: 3
+    ObjectType: 1
   - X: 6
     Y: 6
     ObjectType: 0
@@ -75,4 +69,10 @@ MonoBehaviour:
     ObjectType: 0
   - X: 11
     Y: 6
+    ObjectType: 0
+  - X: 12
+    Y: 9
+    ObjectType: 0
+  - X: 13
+    Y: 9
     ObjectType: 0
