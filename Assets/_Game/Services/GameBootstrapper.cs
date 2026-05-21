@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using FrontLine.Models;
 using FrontLine.Controllers;
 using FrontLine.Input;
@@ -28,21 +29,37 @@ namespace FrontLine.Services
         [SerializeField] private SmokeViewController _smokeViewController;
         [SerializeField] private GrenadeBoxView[] _grenadeBoxViews;
 
+        [Header("Scene Loading")]
+        [SerializeField] private string _battleSceneName = "BattleScene";
+
         private TurnController _turnController;
+        private bool _isSceneInitialized;
 
         private void Awake()
         {
             InitializeServices();
-            InitializeScene();
+        }
+
+        private void Start()
+        {
+            LoadBattleScene();
         }
 
         private void OnDestroy()
         {
             if (_turnController == null) return;
-            _turnController.OnTurnStarted -= _aiInputHandler.OnTurnStarted;
-            _turnController.OnTurnEnded -= _aiInputHandler.OnTurnEnded;
-            _turnController.OnTurnStarted -= _selectionManager.OnTurnStarted;
-            _turnController.OnTurnEnded -= _selectionManager.OnTurnEnded;
+
+            if (_aiInputHandler != null)
+            {
+                _turnController.OnTurnStarted -= _aiInputHandler.OnTurnStarted;
+                _turnController.OnTurnEnded -= _aiInputHandler.OnTurnEnded;
+            }
+
+            if (_selectionManager != null)
+            {
+                _turnController.OnTurnStarted -= _selectionManager.OnTurnStarted;
+                _turnController.OnTurnEnded -= _selectionManager.OnTurnEnded;
+            }
         }
 
         private void InitializeServices()
@@ -70,12 +87,24 @@ namespace FrontLine.Services
             Debug.Log("[GameBootstrapper] Services registered.");
         }
 
-        private void InitializeScene()
+        public void InitializeBattleRuntime()
         {
+            if (_isSceneInitialized)
+            {
+                return;
+            }
+
+            if (!HasSceneReferences())
+            {
+                Debug.LogError("[GameBootstrapper] Missing required scene references in Bootstrap scene.");
+                return;
+            }
+
             ResolveOptionalSceneReferences();
 
             _gridManager.Initialize();
             _inputManager.Initialize();
+            _hudController.gameObject.SetActive(true);
             _hudController.Initialize(_inputManager);
             _selectionManager.Initialize(_inputManager, _hudController);
             _cameraController.Initialize(_inputManager);
@@ -90,17 +119,47 @@ namespace FrontLine.Services
 
             var cmdProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
             if (_smokeViewController != null)
+            {
                 _smokeViewController.Initialize(
                     ServiceLocator.Instance.Get<GameState>(),
                     _gridManager,
                     ServiceLocator.Instance.Get<TurnController>(),
                     cmdProcessor);
+            }
 
             if (_grenadeBoxViews != null)
+            {
                 foreach (var view in _grenadeBoxViews)
-                    if (view != null) view.Initialize(cmdProcessor);
+                {
+                    if (view != null)
+                    {
+                        view.Initialize(cmdProcessor);
+                    }
+                }
+            }
+
+            _isSceneInitialized = true;
 
             Debug.Log("[GameBootstrapper] Scene initialized.");
+        }
+
+        private bool HasSceneReferences()
+        {
+            if (_gridManager == null) Debug.LogError("GridManager not found in Bootstrap scene!");
+            if (_unitSpawner == null) Debug.LogError("UnitSpawner not found in Bootstrap scene!");
+            if (_inputManager == null) Debug.LogError("InputManager not found in Bootstrap scene!");
+            if (_selectionManager == null) Debug.LogError("SelectionManager not found in Bootstrap scene!");
+            if (_cameraController == null) Debug.LogError("CameraController not found in Bootstrap scene!");
+            if (_hudController == null) Debug.LogError("HUDController not found in Bootstrap scene!");
+            if (_aiInputHandler == null) Debug.LogError("AIInputHandler not found in Bootstrap scene!");
+
+            return _gridManager != null &&
+                   _unitSpawner != null &&
+                   _inputManager != null &&
+                   _selectionManager != null &&
+                   _cameraController != null &&
+                   _hudController != null &&
+                   _aiInputHandler != null;
         }
 
         private void ResolveOptionalSceneReferences()
@@ -109,11 +168,39 @@ namespace FrontLine.Services
             {
                 _smokeViewController = FindFirstObjectByType<SmokeViewController>();
                 if (_smokeViewController == null)
+                {
                     _smokeViewController = new GameObject("SmokeViewController").AddComponent<SmokeViewController>();
+                }
             }
 
             if (_grenadeBoxViews == null || _grenadeBoxViews.Length == 0)
+            {
                 _grenadeBoxViews = FindObjectsByType<GrenadeBoxView>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            }
+        }
+
+        private void LoadBattleScene()
+        {
+            if (SceneManager.GetSceneByName(_battleSceneName).isLoaded)
+            {
+                InitializeBattleRuntime();
+                return;
+            }
+
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.LoadScene(_battleSceneName, LoadSceneMode.Additive);
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name != _battleSceneName)
+            {
+                return;
+            }
+
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.SetActiveScene(scene);
+            InitializeBattleRuntime();
         }
     }
 }
