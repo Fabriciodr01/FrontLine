@@ -18,10 +18,6 @@ namespace FrontLine.Services
         // Start and end tiles are excluded from blocking checks.
         public bool HasLOS(int x0, int y0, int x1, int y1)
         {
-            var endTile = _gameState.GetTile(x1, y1);
-            if (endTile != null && endTile.HasSmoke)
-                return false;
-
             int nx    = Math.Abs(x1 - x0);
             int ny    = Math.Abs(y1 - y0);
             int signX = x1 > x0 ? 1 : (x1 < x0 ? -1 : 0);

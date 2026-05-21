@@ -57,6 +57,17 @@ namespace FrontLine.Models
         public bool IsValidPosition(int x, int y)
             => x >= 0 && x < GridWidth && y >= 0 && y < GridHeight;
 
+        public bool IsUnitInSmoke(UnitData unit)
+        {
+            if (unit == null)
+            {
+                return false;
+            }
+
+            var tile = GetTile(unit.TileX, unit.TileY);
+            return tile != null && tile.HasSmoke;
+        }
+
         public void AddUnit(UnitData unit)
         {
             Units[unit.UnitId] = unit;
