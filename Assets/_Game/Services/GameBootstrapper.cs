@@ -26,6 +26,8 @@ namespace FrontLine.Services
         [SerializeField] private CameraController _cameraController;
         [SerializeField] private HUDController _hudController;
         [SerializeField] private AIInputHandler _aiInputHandler;
+        [SerializeField] private SmokeViewController _smokeViewController;
+        [SerializeField] private GrenadeBoxView[] _grenadeBoxViews;
 
         [Header("Scene Loading")]
         [SerializeField] private string _battleSceneName = "BattleScene";
@@ -98,6 +100,8 @@ namespace FrontLine.Services
                 return;
             }
 
+            ResolveOptionalSceneReferences();
+
             _gridManager.Initialize();
             _inputManager.Initialize();
             _hudController.gameObject.SetActive(true);
@@ -112,6 +116,28 @@ namespace FrontLine.Services
             _turnController.OnTurnEnded += _selectionManager.OnTurnEnded;
 
             _unitSpawner.Initialize();
+
+            var cmdProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
+            if (_smokeViewController != null)
+            {
+                _smokeViewController.Initialize(
+                    ServiceLocator.Instance.Get<GameState>(),
+                    _gridManager,
+                    ServiceLocator.Instance.Get<TurnController>(),
+                    cmdProcessor);
+            }
+
+            if (_grenadeBoxViews != null)
+            {
+                foreach (var view in _grenadeBoxViews)
+                {
+                    if (view != null)
+                    {
+                        view.Initialize(cmdProcessor);
+                    }
+                }
+            }
+
             _isSceneInitialized = true;
 
             Debug.Log("[GameBootstrapper] Scene initialized.");
@@ -134,6 +160,23 @@ namespace FrontLine.Services
                    _cameraController != null &&
                    _hudController != null &&
                    _aiInputHandler != null;
+        }
+
+        private void ResolveOptionalSceneReferences()
+        {
+            if (_smokeViewController == null)
+            {
+                _smokeViewController = FindFirstObjectByType<SmokeViewController>();
+                if (_smokeViewController == null)
+                {
+                    _smokeViewController = new GameObject("SmokeViewController").AddComponent<SmokeViewController>();
+                }
+            }
+
+            if (_grenadeBoxViews == null || _grenadeBoxViews.Length == 0)
+            {
+                _grenadeBoxViews = FindObjectsByType<GrenadeBoxView>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            }
         }
 
         private void LoadBattleScene()

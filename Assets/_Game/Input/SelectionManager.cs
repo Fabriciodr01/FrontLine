@@ -14,7 +14,8 @@ namespace FrontLine.Input
         Idle,
         UnitSelected,
         MovePending,
-        ShootPending
+        ShootPending,
+        ThrowPending
     }
 
     public class SelectionManager : MonoBehaviour
@@ -46,6 +47,9 @@ namespace FrontLine.Input
         private int _pendingMoveY;
         private bool _pendingMoveIsDash;
         private string _pendingTargetId;
+        private int _pendingThrowX;
+        private int _pendingThrowY;
+        private GrenadeType _pendingGrenadeType;
 
         public void Initialize(InputManager inputManager, HUDController hudController)
         {
@@ -146,6 +150,10 @@ namespace FrontLine.Input
                 case SelectionState.ShootPending:
                     TryConfirmShoot(tileX, tileY);
                     break;
+
+                case SelectionState.ThrowPending:
+                    TryConfirmThrow(tileX, tileY);
+                    break;
             }
         }
 
@@ -164,11 +172,21 @@ namespace FrontLine.Input
                         () => HighlightAttackRange());
                     break;
 
+                case ActionType.Throw:
+                    _pendingGrenadeType = GrenadeType.Frag;
+                    ToggleAction(SelectionState.ThrowPending, ActionType.Throw,
+                        () => HighlightThrowRange());
+                    break;
+
+                case ActionType.UseConsumable:
+                    _pendingGrenadeType = GrenadeType.Smoke;
+                    ToggleAction(SelectionState.ThrowPending, ActionType.UseConsumable,
+                        () => HighlightThrowRange());
+                    break;
+
                 case ActionType.Cancel:
                     ClearSelection();
                     break;
-
-                    // TODO-POST-ALPHA: ActionType.Throw, ActionType.UseConsumable
             }
         }
 
@@ -272,6 +290,37 @@ namespace FrontLine.Input
             _hudController.ShowShootConfirmation(target.UnitId, eval.HitChance, attacker.Damage);
         }
 
+        private void TryConfirmThrow(int tileX, int tileY)
+        {
+            if (!_gameState.Units.TryGetValue(_selectedUnitId, out var attacker)) return;
+            if (!_gameState.IsValidPosition(tileX, tileY)) return;
+
+            int dist = GridMath.GetTileDistance(attacker.TileX, attacker.TileY, tileX, tileY);
+            if (dist > 4) return;
+
+            _pendingThrowX = tileX;
+            _pendingThrowY = tileY;
+            _hudController.ShowThrowConfirmation(tileX, tileY, _pendingGrenadeType);
+        }
+
+        private void HighlightThrowRange()
+        {
+            if (!_gameState.Units.TryGetValue(_selectedUnitId, out var unit)) return;
+
+            _gridManager.ResetAllTileColors();
+            _gridManager.HighlightTile(unit.TileX, unit.TileY, _selectedColor);
+
+            for (int x = 0; x < _gameState.GridWidth; x++)
+            {
+                for (int y = 0; y < _gameState.GridHeight; y++)
+                {
+                    if (x == unit.TileX && y == unit.TileY) continue;
+                    if (GridMath.GetTileDistance(unit.TileX, unit.TileY, x, y) <= 4)
+                        _gridManager.HighlightTile(x, y, _attackRangeColor);
+                }
+            }
+        }
+
         private void HandlePopupExecute()
         {
             switch (_state)
@@ -297,6 +346,18 @@ namespace FrontLine.Input
                     Debug.Log($"[SelectionManager] {shootResult.Message}");
                     EnterUnitSelected();
                     break;
+
+                case SelectionState.ThrowPending:
+                    var throwResult = _commandProcessor.Process(
+                        new ThrowGrenadeCommand(
+                            _turnController.CurrentPlayerId,
+                            _selectedUnitId,
+                            _pendingGrenadeType,
+                            _pendingThrowX,
+                            _pendingThrowY));
+                    Debug.Log($"[SelectionManager] {throwResult.Message}");
+                    EnterUnitSelected();
+                    break;
             }
         }
 
@@ -310,6 +371,10 @@ namespace FrontLine.Input
 
                 case SelectionState.ShootPending:
                     HighlightAttackRange();
+                    break;
+
+                case SelectionState.ThrowPending:
+                    HighlightThrowRange();
                     break;
             }
         }
@@ -372,6 +437,8 @@ namespace FrontLine.Input
         {
             _hudController.SetActionSelected(ActionType.Move, false);
             _hudController.SetActionSelected(ActionType.Shoot, false);
+            _hudController.SetActionSelected(ActionType.Throw, false);
+            _hudController.SetActionSelected(ActionType.UseConsumable, false);
         }
 
         private bool TryGetTileFromHit(RaycastHit hit, out int tileX, out int tileY)

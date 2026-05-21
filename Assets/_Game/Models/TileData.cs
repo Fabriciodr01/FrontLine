@@ -14,6 +14,8 @@ namespace FrontLine.Models
         public TileType Type { get; set; }
         public bool IsOccupied { get; set; }
         public string OccupyingUnitId { get; set; }
+        public bool HasSmoke { get; set; }
+        public int SmokeTurnsRemaining { get; set; }
 
         public TileData(int x, int y, TileType type = TileType.Normal, int elevation = 0)
         {
@@ -23,6 +25,20 @@ namespace FrontLine.Models
             Elevation = elevation;
             IsOccupied = false;
             OccupyingUnitId = null;
+        }
+
+        public void ApplySmoke(int turns)
+        {
+            HasSmoke = true;
+            SmokeTurnsRemaining = turns;
+        }
+
+        public void TickSmoke()
+        {
+            if (!HasSmoke) return;
+            SmokeTurnsRemaining--;
+            if (SmokeTurnsRemaining < 0) //smoke thicks at thrown turn
+                HasSmoke = false;
         }
 
         public bool IsWalkable() => Type != TileType.Blocked && !IsOccupied;

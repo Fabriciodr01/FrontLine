@@ -29,10 +29,11 @@ namespace FrontLine.Editor
         private static void BakeFromScene(MapData mapData)
         {
             var gridObjects = Object.FindObjectsByType<GridObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var grenadeBoxes = Object.FindObjectsByType<GrenadeBoxView>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
-            if (gridObjects.Length == 0)
+            if (gridObjects.Length == 0 && grenadeBoxes.Length == 0)
             {
-                Debug.LogWarning("[MapDataEditor] No GridObject components found in scene.");
+                Debug.LogWarning("[MapDataEditor] No GridObject or GrenadeBoxView components found in scene.");
                 return;
             }
 
@@ -45,11 +46,17 @@ namespace FrontLine.Editor
                     entryMap[(gx, gy)] = new GridObjectEntry { X = gx, Y = gy, ObjectType = go.ObjectType };
             }
 
+            foreach (var box in grenadeBoxes)
+            {
+                if (box.TryGetBakedEntry(out var entry))
+                    entryMap[(entry.X, entry.Y)] = entry;
+            }
+
             mapData.SetEntries(new List<GridObjectEntry>(entryMap.Values));
             EditorUtility.SetDirty(mapData);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"[MapDataEditor] Baked {entryMap.Count} tile entries from {gridObjects.Length} GridObjects into {mapData.name}.");
+            Debug.Log($"[MapDataEditor] Baked {entryMap.Count} tile entries from {gridObjects.Length} GridObjects and {grenadeBoxes.Length} grenade boxes into {mapData.name}.");
         }
     }
 }

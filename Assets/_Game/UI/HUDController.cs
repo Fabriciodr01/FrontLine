@@ -74,6 +74,7 @@ namespace FrontLine.UI
             _commandProcessor.OnCommandExecuted += HandleCommandExecuted;
             _commandProcessor.OnUnitDamaged += HandleUnitDamaged;
             _commandProcessor.OnUnitKilled += HandleUnitKilled;
+            _commandProcessor.OnGrenadeCollected += HandleGrenadeCollected;
         }
 
         private void SubscribeSubcomponentEvents()
@@ -105,6 +106,7 @@ namespace FrontLine.UI
                 _commandProcessor.OnCommandExecuted -= HandleCommandExecuted;
                 _commandProcessor.OnUnitDamaged -= HandleUnitDamaged;
                 _commandProcessor.OnUnitKilled -= HandleUnitKilled;
+                _commandProcessor.OnGrenadeCollected -= HandleGrenadeCollected;
             }
 
             if (_subcomponentEventsSubscribed)
@@ -142,7 +144,9 @@ namespace FrontLine.UI
             if (!_gameState.Units.TryGetValue(unitId, out var unit)) return;
 
             bool hasAP = _turnController.HasActionPoints(unitId);
-            _actionBar.RefreshForUnit(hasAP, hasAP);
+            bool hasFrag = hasAP && unit.FragGrenades > 0;
+            bool hasSmoke = hasAP && unit.SmokeGrenades > 0;
+            _actionBar.RefreshForUnit(hasAP, hasAP, hasFrag, hasSmoke);
             _actionBar.Show();
 
             foreach (var kvp in _unitCards)
@@ -172,6 +176,9 @@ namespace FrontLine.UI
 
         public void ShowShootConfirmation(string targetId, int hitChance, int damage)
             => _confirmationPopup.ShowShoot(targetId, hitChance, damage);
+
+        public void ShowThrowConfirmation(int targetX, int targetY, GrenadeType type)
+            => _confirmationPopup.ShowThrow(targetX, targetY, type);
 
         public void HideConfirmation()
             => _confirmationPopup.Hide();
@@ -238,6 +245,21 @@ namespace FrontLine.UI
 
             if (_unitCards.TryGetValue(unit.UnitId, out var card))
                 card.Refresh(unit);
+        }
+
+        private void HandleGrenadeCollected(string unitId, GrenadeBox box)
+        {
+            string typeName = box.GrenadeType == GrenadeType.Frag ? "FRAGMENTAÇÃO" : "FUMAÇA";
+            ShowFeedback($"GRANADA DE {typeName} COLETADA!", 2f);
+
+            // Refresh action bar so grenade buttons become active immediately
+            if (_gameState.Units.TryGetValue(unitId, out var unit))
+            {
+                bool hasAP = _turnController.HasActionPoints(unitId);
+                bool hasFrag = hasAP && unit.FragGrenades > 0;
+                bool hasSmoke = hasAP && unit.SmokeGrenades > 0;
+                _actionBar.RefreshForUnit(hasAP, hasAP, hasFrag, hasSmoke);
+            }
         }
 
         private void HandleUnitKilled(string unitId)

@@ -53,12 +53,23 @@ namespace FrontLine.Services
             var attacker = context.Attacker;
             var target   = context.Target;
 
-            int  distance  = GridMath.GetTileDistance(attacker.TileX, attacker.TileY, target.TileX, target.TileY);
-            bool inRange   = distance <= attacker.AttackRange;
-            bool hasLOS    = inRange && _losService.HasLOS(attacker.TileX, attacker.TileY, target.TileX, target.TileY);
-            int  hitChance = (inRange && hasLOS) ? CalculateHitChance(attacker, target) : 0;
+            int distance = GridMath.GetTileDistance(attacker.TileX, attacker.TileY, target.TileX, target.TileY);
+            bool inRange = distance <= attacker.AttackRange;
+            bool attackerInSmoke = _gameState.IsUnitInSmoke(attacker);
+            bool targetInSmoke = _gameState.IsUnitInSmoke(target);
+            bool hasLOS = inRange && _losService.HasLOS(attacker.TileX, attacker.TileY, target.TileX, target.TileY);
+            int hitChance = (inRange && hasLOS && !attackerInSmoke && !targetInSmoke)
+                ? CalculateHitChance(attacker, target)
+                : 0;
 
-            return new AttackEvaluation(inRange, hasLOS, CoverType.None, hitChance, distance);
+            return new AttackEvaluation(
+                inRange,
+                hasLOS,
+                attackerInSmoke,
+                targetInSmoke,
+                CoverType.None,
+                hitChance,
+                distance);
         }
 
         public CombatResult Resolve(UnitData attacker, UnitData target)

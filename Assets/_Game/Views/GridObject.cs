@@ -19,6 +19,17 @@ namespace FrontLine.Views
         public int GridY { get; private set; }
         public float CellSize => _cellSize;
 
+        public (int x, int y) GetAnchorCell()
+        {
+            var r = GetComponentInChildren<Renderer>();
+            Vector3 pos = transform.position;
+            float sizeX = r != null ? r.bounds.size.x : _cellSize;
+            float sizeZ = r != null ? r.bounds.size.z : _cellSize;
+            float snapX = ComputeSnap(pos.x, sizeX);
+            float snapZ = ComputeSnap(pos.z, sizeZ);
+            return (Mathf.FloorToInt(snapX / _cellSize), Mathf.FloorToInt(snapZ / _cellSize));
+        }
+
 #if UNITY_EDITOR
         private void OnValidate() => SnapToGrid();
 
@@ -32,8 +43,9 @@ namespace FrontLine.Views
             float snapX = ComputeSnap(pos.x, sizeX);
             float snapZ = ComputeSnap(pos.z, sizeZ);
 
-            GridX = Mathf.FloorToInt(snapX / _cellSize);
-            GridY = Mathf.FloorToInt(snapZ / _cellSize);
+            var anchor = GetAnchorCell();
+            GridX = anchor.x;
+            GridY = anchor.y;
             transform.position = new Vector3(snapX, pos.y, snapZ);
         }
 
@@ -93,6 +105,8 @@ namespace FrontLine.Views
                 GridObjectType.HalfCover => Color.yellow,
                 GridObjectType.FullCover => Color.yellow,
                 GridObjectType.Decoration => Color.green,
+                GridObjectType.FragGrenadeBox => Color.magenta,
+                GridObjectType.SmokeGrenadeBox => Color.cyan,
                 _ => Color.white
             };
 

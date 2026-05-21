@@ -52,6 +52,12 @@ namespace FrontLine.Commands
             if (!eval.InRange)
                 return CommandResult.Fail($"Target out of attack range. Distance:{eval.Distance} Range:{attacker.AttackRange}");
 
+            if (eval.AttackerInSmoke)
+                return CommandResult.Fail("Cannot shoot while inside smoke.");
+
+            if (eval.TargetInSmoke)
+                return CommandResult.Fail("Cannot shoot a target that is inside smoke.");
+
             if (!eval.HasLOS)
                 return CommandResult.Fail("No line of sight.");
 

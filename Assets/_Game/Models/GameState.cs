@@ -19,6 +19,8 @@ namespace FrontLine.Models
 
         public Dictionary<string, UnitData> Units { get; private set; }
         public TileData[,] Grid { get; private set; }
+        public Dictionary<(int, int), GrenadeBox> GrenadeBoxes { get; private set; }
+        public List<PendingFragGrenade> PendingFragGrenades { get; private set; }
 
         public int GridWidth { get; private set; }
         public int GridHeight { get; private set; }
@@ -32,6 +34,8 @@ namespace FrontLine.Models
             WinnerPlayerId = null;
             Units = new Dictionary<string, UnitData>();
             Grid = new TileData[gridWidth, gridHeight];
+            GrenadeBoxes = new Dictionary<(int, int), GrenadeBox>();
+            PendingFragGrenades = new List<PendingFragGrenade>();
 
             InitializeGrid();
         }
@@ -52,6 +56,17 @@ namespace FrontLine.Models
 
         public bool IsValidPosition(int x, int y)
             => x >= 0 && x < GridWidth && y >= 0 && y < GridHeight;
+
+        public bool IsUnitInSmoke(UnitData unit)
+        {
+            if (unit == null)
+            {
+                return false;
+            }
+
+            var tile = GetTile(unit.TileX, unit.TileY);
+            return tile != null && tile.HasSmoke;
+        }
 
         public void AddUnit(UnitData unit)
         {
@@ -75,6 +90,26 @@ namespace FrontLine.Models
                 tile.OccupyingUnitId = null;
             }
             Units.Remove(unitId);
+        }
+
+        public void AddGrenadeBox(GrenadeBox box)
+            => GrenadeBoxes[(box.TileX, box.TileY)] = box;
+
+        public void RemoveGrenadeBox(int x, int y)
+            => GrenadeBoxes.Remove((x, y));
+    }
+
+    public class PendingFragGrenade
+    {
+        public int TargetX { get; private set; }
+        public int TargetY { get; private set; }
+        public int TurnsRemaining { get; set; }
+
+        public PendingFragGrenade(int targetX, int targetY, int turnsRemaining)
+        {
+            TargetX = targetX;
+            TargetY = targetY;
+            TurnsRemaining = turnsRemaining;
         }
     }
 }

@@ -18,7 +18,7 @@ namespace FrontLine.Services
         {
             if (_mapData == null)
             {
-                Debug.LogWarning("[MapLoader] No MapData assigned — grid will have no obstacles.");
+                Debug.LogWarning("[MapLoader] No MapData assigned - grid will have no baked objects.");
                 return;
             }
 
@@ -38,7 +38,13 @@ namespace FrontLine.Services
                     case GridObjectType.FullCover:
                         tile.Type = TileType.Blocked;
                         break;
-                    // Decoration: intentional no-op — visual only
+                    case GridObjectType.FragGrenadeBox:
+                        _gameState.AddGrenadeBox(new GrenadeBox(GrenadeType.Frag, entry.X, entry.Y));
+                        break;
+                    case GridObjectType.SmokeGrenadeBox:
+                        _gameState.AddGrenadeBox(new GrenadeBox(GrenadeType.Smoke, entry.X, entry.Y));
+                        break;
+                    // Decoration: intentional no-op - visual only
                 }
             }
         }

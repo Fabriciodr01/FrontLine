@@ -47,7 +47,7 @@ namespace FrontLine.UI
 
         // TODO-POST-ALPHA: replace bool params with ActionDefinition ScriptableObjects
         // so each action type carries its own label, icon and availability logic
-        public void RefreshForUnit(bool hasMoveAP, bool hasShootAP)
+        public void RefreshForUnit(bool hasMoveAP, bool hasShootAP, bool hasFragGrenade, bool hasSmokeGrenade)
         {
             foreach (var btn in _actionButtons)
             {
@@ -60,10 +60,10 @@ namespace FrontLine.UI
                         btn.SetInteractable(hasShootAP);
                         break;
                     case ActionType.Throw:
-                        btn.SetInteractable(false); // TODO-POST-ALPHA
+                        btn.SetInteractable(hasFragGrenade);
                         break;
                     case ActionType.UseConsumable:
-                        btn.SetInteractable(false); // TODO-POST-ALPHA
+                        btn.SetInteractable(hasSmokeGrenade);
                         break;
                 }
 
