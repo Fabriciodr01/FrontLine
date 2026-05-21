@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using FrontLine.Models;
 using FrontLine.Controllers;
 using FrontLine.Input;
@@ -26,21 +27,37 @@ namespace FrontLine.Services
         [SerializeField] private HUDController _hudController;
         [SerializeField] private AIInputHandler _aiInputHandler;
 
+        [Header("Scene Loading")]
+        [SerializeField] private string _battleSceneName = "BattleScene";
+
         private TurnController _turnController;
+        private bool _isSceneInitialized;
 
         private void Awake()
         {
             InitializeServices();
-            InitializeScene();
+        }
+
+        private void Start()
+        {
+            LoadBattleScene();
         }
 
         private void OnDestroy()
         {
             if (_turnController == null) return;
-            _turnController.OnTurnStarted -= _aiInputHandler.OnTurnStarted;
-            _turnController.OnTurnEnded   -= _aiInputHandler.OnTurnEnded;
-            _turnController.OnTurnStarted -= _selectionManager.OnTurnStarted;
-            _turnController.OnTurnEnded   -= _selectionManager.OnTurnEnded;
+
+            if (_aiInputHandler != null)
+            {
+                _turnController.OnTurnStarted -= _aiInputHandler.OnTurnStarted;
+                _turnController.OnTurnEnded -= _aiInputHandler.OnTurnEnded;
+            }
+
+            if (_selectionManager != null)
+            {
+                _turnController.OnTurnStarted -= _selectionManager.OnTurnStarted;
+                _turnController.OnTurnEnded -= _selectionManager.OnTurnEnded;
+            }
         }
 
         private void InitializeServices()
@@ -52,9 +69,9 @@ namespace FrontLine.Services
             _turnController = new TurnController(gameState, stateMachine);
             new MapLoader(gameState, _mapData).Load();
 
-            var losService     = new LineOfSightService(gameState);
+            var losService = new LineOfSightService(gameState);
             var combatResolver = new CombatResolver(gameState, losService);
-            var cmdProcessor   = new CommandProcessor(gameState, _turnController);
+            var cmdProcessor = new CommandProcessor(gameState, _turnController);
 
             ServiceLocator.Instance.Register(gameState);
             ServiceLocator.Instance.Register(stateMachine);
@@ -68,25 +85,79 @@ namespace FrontLine.Services
             Debug.Log("[GameBootstrapper] Services registered.");
         }
 
-        private void InitializeScene()
+        public void InitializeBattleRuntime()
         {
+            if (_isSceneInitialized)
+            {
+                return;
+            }
+
+            if (!HasSceneReferences())
+            {
+                Debug.LogError("[GameBootstrapper] Missing required scene references in Bootstrap scene.");
+                return;
+            }
+
             _gridManager.Initialize();
             _inputManager.Initialize();
+            _hudController.gameObject.SetActive(true);
             _hudController.Initialize(_inputManager);
             _selectionManager.Initialize(_inputManager, _hudController);
             _cameraController.Initialize(_inputManager);
 
             _aiInputHandler.Initialize();
             _turnController.OnTurnStarted += _aiInputHandler.OnTurnStarted;
-            _turnController.OnTurnEnded   += _aiInputHandler.OnTurnEnded;
+            _turnController.OnTurnEnded += _aiInputHandler.OnTurnEnded;
             _turnController.OnTurnStarted += _selectionManager.OnTurnStarted;
-            _turnController.OnTurnEnded   += _selectionManager.OnTurnEnded;
+            _turnController.OnTurnEnded += _selectionManager.OnTurnEnded;
 
             _unitSpawner.Initialize();
+            _isSceneInitialized = true;
 
             Debug.Log("[GameBootstrapper] Scene initialized.");
         }
 
+        private bool HasSceneReferences()
+        {
+            if (_gridManager == null) Debug.LogError("GridManager not found in Bootstrap scene!");
+            if (_unitSpawner == null) Debug.LogError("UnitSpawner not found in Bootstrap scene!");
+            if (_inputManager == null) Debug.LogError("InputManager not found in Bootstrap scene!");
+            if (_selectionManager == null) Debug.LogError("SelectionManager not found in Bootstrap scene!");
+            if (_cameraController == null) Debug.LogError("CameraController not found in Bootstrap scene!");
+            if (_hudController == null) Debug.LogError("HUDController not found in Bootstrap scene!");
+            if (_aiInputHandler == null) Debug.LogError("AIInputHandler not found in Bootstrap scene!");
+
+            return _gridManager != null &&
+                   _unitSpawner != null &&
+                   _inputManager != null &&
+                   _selectionManager != null &&
+                   _cameraController != null &&
+                   _hudController != null &&
+                   _aiInputHandler != null;
+        }
+
+        private void LoadBattleScene()
+        {
+            if (SceneManager.GetSceneByName(_battleSceneName).isLoaded)
+            {
+                InitializeBattleRuntime();
+                return;
+            }
+
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.LoadScene(_battleSceneName, LoadSceneMode.Additive);
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name != _battleSceneName)
+            {
+                return;
+            }
+
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.SetActiveScene(scene);
+            InitializeBattleRuntime();
+        }
     }
 }
-

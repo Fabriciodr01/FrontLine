@@ -25,9 +25,18 @@ MonoBehaviour:
   - X: 3
     Y: 6
     ObjectType: 0
-  - X: 7
-    Y: 9
+  - X: 14
+    Y: 6
     ObjectType: 0
+  - X: 15
+    Y: 6
+    ObjectType: 0
+  - X: 2
+    Y: 3
+    ObjectType: 1
+  - X: 3
+    Y: 3
+    ObjectType: 1
   - X: 6
     Y: 6
     ObjectType: 0
@@ -46,6 +55,12 @@ MonoBehaviour:
   - X: 11
     Y: 6
     ObjectType: 0
+  - X: 7
+    Y: 3
+    ObjectType: 2
+  - X: 8
+    Y: 3
+    ObjectType: 2
   - X: 12
     Y: 9
     ObjectType: 0
@@ -53,20 +68,5 @@ MonoBehaviour:
     Y: 9
     ObjectType: 0
   - X: 7
-    Y: 3
-    ObjectType: 2
-  - X: 8
-    Y: 3
-    ObjectType: 2
-  - X: 2
-    Y: 3
-    ObjectType: 1
-  - X: 3
-    Y: 3
-    ObjectType: 1
-  - X: 14
-    Y: 6
-    ObjectType: 0
-  - X: 15
-    Y: 6
+    Y: 9
     ObjectType: 0
