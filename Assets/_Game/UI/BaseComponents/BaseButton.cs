@@ -23,7 +23,7 @@ namespace FrontLine.UI.BaseComponents
 
         protected virtual void Awake()
         {
-            EnsureInitialized();
+            Initialize();
         }
 
         protected virtual void OnDestroy()
@@ -39,14 +39,12 @@ namespace FrontLine.UI.BaseComponents
 
         public virtual void SetInteractable(bool interactable)
         {
-            EnsureInitialized();
             Button.interactable = interactable;
             RefreshVisual(interactable, false);
         }
 
         public virtual void SetSelected(bool selected)
         {
-            EnsureInitialized();
             RefreshVisual(Button.interactable, selected);
         }
 
@@ -65,7 +63,7 @@ namespace FrontLine.UI.BaseComponents
                               : _normalColor;
         }
 
-        private void EnsureInitialized()
+        private void Initialize()
         {
             if (Button == null)
             {
