@@ -6,7 +6,7 @@ using FrontLine.Models;
 using FrontLine.Controllers;
 using FrontLine.Commands;
 using FrontLine.Services;
-using FrontLine.Input;
+using FrontLine.InputSystem;
 
 namespace FrontLine.AI
 {
@@ -16,21 +16,21 @@ namespace FrontLine.AI
     // controls timing and sequencing.
     public class AIInputHandler : MonoBehaviour, IInputHandler
     {
-        private const string AiPlayerId    = "Player2";
-        private const float  StartDelay    = 0.5f;
-        private const float  ActionDelay   = 0.4f;
-        private const int    MaxActionsPerUnit = 10;
+        private const string AiPlayerId = "Player2";
+        private const float StartDelay = 0.5f;
+        private const float ActionDelay = 0.4f;
+        private const int MaxActionsPerUnit = 10;
 
-        private GameState         _gameState;
-        private CommandProcessor  _commandProcessor;
-        private CombatResolver    _combatResolver;
-        private Coroutine         _coroutine;
+        private GameState _gameState;
+        private CommandProcessor _commandProcessor;
+        private CombatResolver _combatResolver;
+        private Coroutine _coroutine;
 
         public void Initialize()
         {
-            _gameState        = ServiceLocator.Instance.Get<GameState>();
+            _gameState = ServiceLocator.Instance.Get<GameState>();
             _commandProcessor = ServiceLocator.Instance.Get<CommandProcessor>();
-            _combatResolver   = ServiceLocator.Instance.Get<CombatResolver>();
+            _combatResolver = ServiceLocator.Instance.Get<CombatResolver>();
         }
 
         public void OnTurnStarted(string playerId)

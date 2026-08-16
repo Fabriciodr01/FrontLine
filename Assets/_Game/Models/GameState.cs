@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FrontLine.Map.Grid;
 
 namespace FrontLine.Models
 {

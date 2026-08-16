@@ -8,7 +8,7 @@ using FrontLine.Models;
 using FrontLine.Controllers;
 using FrontLine.Commands;
 using FrontLine.Services;
-using FrontLine.Input;
+using FrontLine.InputSystem;
 
 namespace FrontLine.UI
 {
