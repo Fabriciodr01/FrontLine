@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using FrontLine.Models;
 using FrontLine.Services;
+using FrontLine.Map.Grid;
 
 namespace FrontLine.Views
 {

@@ -3,7 +3,7 @@ using UnityEngine;
 using FrontLine.Models;
 using FrontLine.Controllers;
 using FrontLine.Commands;
-using FrontLine.Services;
+using FrontLine.Map.Grid;
 
 namespace FrontLine.Views
 {

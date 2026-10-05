@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using FrontLine.Models;
 using FrontLine.Controllers;
-using FrontLine.Services;
+using FrontLine.Map.Grid;
 
 namespace FrontLine.Commands
 {

@@ -2,10 +2,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using FrontLine.Models;
 using FrontLine.Controllers;
-using FrontLine.Input;
+using FrontLine.InputSystem;
 using FrontLine.Views;
 using FrontLine.UI;
 using FrontLine.AI;
+using FrontLine.Map.Grid;
+using FrontLine.Map.Config;
+
 
 namespace FrontLine.Services
 {

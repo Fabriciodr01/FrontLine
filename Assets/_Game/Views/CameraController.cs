@@ -1,5 +1,5 @@
 using UnityEngine;
-using FrontLine.Input;
+using FrontLine.InputSystem;
 
 namespace FrontLine.Views
 {

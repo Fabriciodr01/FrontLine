@@ -1,6 +1,8 @@
 using UnityEngine;
 using FrontLine.Models;
 using FrontLine.Controllers;
+using FrontLine.Map.Grid;
+using FrontLine.Map.Config;
 
 namespace FrontLine.Views
 {
